@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FF6B00">
+    <title>RODACOOP - EBA5 | Fila de Carregamento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B00;
+            --primary-dark: #E65100;
+            --secondary: #FFFFFF;
+            --dark: #1A1A1A;
+            --gray: #2D2D2D;
+            --light-gray: #404040;
+            --success: #00C853;
+            --danger: #FF1744;
+            --warning: #FFD600;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--gray) 100%);
+            color: var(--secondary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(255, 107, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .logo {
+            font-size: 2.2em;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .logo span {
+            color: var(--secondary);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .tagline {
+            font-size: 0.85em;
+            opacity: 0.95;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--gray);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--light-gray);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 16px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.6);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #505050;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #B0B0B0;
+            font-size: 0.9em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            background: var(--dark);
+            color: white;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Grid de Vagas */
+        .vagas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .vaga-card {
+            background: var(--dark);
+            border: 2px solid var(--light-gray);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vaga-card:hover:not(.ocupada):not(.disabled) {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .vaga-card.livre {
+            border-color: var(--success);
+            background: rgba(0, 200, 83, 0.1);
+        }
+
+        .vaga-card.ocupada {
+            border-color: var(--danger);
+            background: rgba(255, 23, 68, 0.1);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .vaga-card.minha-vaga {
+            border-color: var(--primary);
+            background: rgba(255, 107, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+        }
+
+        .vaga-numero {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .vaga-status {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .vaga-placa {
+            font-size: 0.85em;
+            margin-top: 8px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Lista de Espera */
+        .lista-espera {
+            background: var(--dark);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .espera-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .espera-item:last-child {
+            border-bottom: none;
+        }
+
+        .espera-posicao {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .espera-info {
+            flex: 1;
+        }
+
+        .espera-nome {
+            font-weight: 600;
+        }
+
+        .espera-placa {
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(0, 200, 83, 0.2);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: rgba(255, 23, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background: rgba(255, 214, 0, 0.2);
+            color: var(--warning);
+        }
+
+        /* Camera/Selfie */
+        .camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--dark);
+            border: 2px solid var(--light-gray);
+        }
+
+        #videoElement, #photoElement {
+            width: 100%;
+            display: block;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-warning {
+            background: rgba(255, 214, 0, 0.1);
+            border-left: 4px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(255, 23, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .alert-success {
+            background: rgba(0, 200, 83, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-info {
+            background: rgba(255, 107, 0, 0.1);
+            border-left: 4px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* QR Code Scanner */
+        .qr-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .qr-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: var(--dark);
+            border: 2px solid var(--primary);
+        }
+
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--gray);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.8em;
+            }
+            
+            .subtitle {
+                font-size: 0.95em;
+            }
+            
+            .vagas-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .card {
+                padding: 16px;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .admin-link {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--dark);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transition: width 0.3s;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-item {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(255, 107, 0, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-box h4 {
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            font-size: 0.85em;
+            color: #B0B0B0;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">RODACOOP</div>
+        <div class="subtitle">EBA5</div>
+        <div class="tagline">O MELHOR SEMPRE VAI CHEGAR</div>
+    </header>
+
+    <div class="container">
+        <!-- Alerta de Localização -->
+        <div id="locationAlert" class="alert alert-warning hidden">
+            <span>📍</span>
+            <span>Ativando GPS... Por favor, aguarde.</span>
+        </div>
+
+        <!-- Alerta Importante sobre Sincronização -->
+        <div id="syncAlert" class="alert alert-info">
+            <span>ℹ️</span>
+            <span><strong>Versão Local:</strong> Para ver a lista completa de todos os motoristas em tempo real, é necessário conectar ao banco de dados. Contate o administrador.</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="vagasOcupadas">0</div>
+                <div class="stat-label">Vagas Ocupadas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="vagasLivres">10</div>
+                <div class="stat-label">Vagas Livres</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="listaEsperaCount">0</div>
+                <div class="stat-label">Na Espera</div>
+            </div>
+        </div>
+
+        <!-- Tela Inicial / QR Code -->
+        <div id="telaInicial" class="card">
+            <div class="card-title">Bem-vindo ao Sistema de Fila</div>
+            <div class="qr-container">
+                <div class="qr-icon">📱</div>
+                <p style="margin-bottom: 20px; color: #B0B0B0;">
+                    Escaneie o QR Code na entrada do galpão para acessar o sistema
+                </p>
+                <button class="btn btn-primary" onclick="iniciarAcesso()">
+                    🎯 Acessar Sistema de Fila
+                </button>
+                <p style="margin-top: 16px; font-size: 0.85em; color: #666;">
+                    Ou clique acima se já estiver no local
+                </p>
+            </div>
+        </div>
+
+        <!-- Menu Principal -->
+        <div id="menuPrincipal" class="hidden">
+            <div class="card">
+                <div class="card-title">O que deseja fazer?</div>
+                <button class="btn btn-primary" onclick="mostrarVagas()">
+                    🚗 Ver Vagas Disponíveis
+                </button>
+                <button class="btn btn-secondary" onclick="mostrarListaEspera()">
+                    📋 Ver Lista de Espera
+                </button>
+                <button class="btn btn-secondary" onclick="minhaVaga()">
+                    💳 Minha Vaga
+                </button>
+            </div>
+
+            <!-- Vagas Grid -->
+            <div id="sectionVagas" class="card hidden">
+                <div class="card-title">Vagas de Carregamento</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressVagas" style="width: 0%"></div>
+                </div>
+                <div class="vagas-grid" id="vagasGrid">
+                    <!-- Vagas serão geradas via JS -->
+                </div>
+                <button class="btn btn-secondary" onclick="voltarMenu()">
+                    ← Voltar ao Menu
+                </button>
+            </div>
+
+            <!-- Lista de Espera -->
+            <div id="sectionListaEspera" class="card hidden">
+                <div class="card-title">Lista de Espera</div>
+                <div id="listaEsperaContent">
+                    <!-- Lista será gerada via JS -->
+                </div>
+                <button class="btn btn-secondary" onclick="voltarMenu()">
+                    ← Voltar ao Menu
+                </button>
+            </div>
+
+            <!-- Minha Vaga -->
+            <div id="sectionMinhaVaga" class="card hidden">
+                <div class="card-title">Minha Vaga</div>
+                <div id="minhaVagaContent">
+                    <!-- Conteúdo será gerado via JS -->
+                </div>
+                <button class="btn btn-secondary" onclick="voltarMenu()">
+                    ← Voltar ao Menu
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulário de Check-in -->
+        <div id="formCheckin" class="card hidden">
+            <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
+            
+            <div class="alert alert-warning">
+                <span>📍</span>
+                <span id="statusLocalizacao">Verificando localização...</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nome Completo</label>
+                <input type="text" id="inputNome" class="form-input" placeholder="Digite seu nome">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Telefone / WhatsApp</label>
+                <input type="tel" id="inputTelefone" class="form-input" placeholder="(00) 00000-0000">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Placa do Veículo</label>
+                <input type="text" id="inputPlaca" class="form-input" placeholder="ABC-1234 ou ABC1D23" style="text-transform: uppercase;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Selfie de Confirmação (Obrigatório)</label>
+                <div class="camera-container">
+                    <video id="videoElement" autoplay playsinline></video>
+                    <canvas id="photoElement" class="hidden"></canvas>
+                </div>
+                <div class="camera-controls">
+                    <button class="btn btn-primary" id="btnTirarFoto" onclick="tirarFoto()">
+                        📸 Tirar Foto
+                    </button>
+                    <button class="btn btn-secondary hidden" id="btnNovaFoto" onclick="novaFoto()">
+                        🔄 Nova Foto
+                    </button>
+                </div>
+                <input type="hidden" id="fotoBase64">
+            </div>
+
+            <div id="checkinActions">
+                <button class="btn btn-success" id="btnConfirmarVaga" onclick="confirmarVaga()" disabled>
+                    ✅ Confirmar Ocupação da Vaga
+                </button>
+                <button class="btn btn-secondary" onclick="cancelarCheckin()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+
+        <!-- Painel Admin -->
+        <div id="panelAdmin" class="card admin-panel hidden">
+            <div class="card-title">🔧 Painel Administrativo</div>
+            <div id="adminContent">
+                <!-- Lista de ocupações -->
+            </div>
+            <button class="btn btn-secondary" onclick="fecharAdmin()">
+                Fechar Painel Admin
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>RODACOOP - EBA5 © 2026</p>
+            <p style="margin-top: 8px;">
+                <span class="admin-link" onclick="abrirAdmin()">Acesso Restrito</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // ⚙️ CONFIGURAÇÕES - AJUSTE AQUI
+        // ============================================
+        const CONFIG = {
+            totalVagas: 10,
+            
+            // 📍 COORDENADAS DO GALPÃO - AJUSTE AQUI
+            // Como obter: Abra Google Maps, toque e segure no local do galpão
+            // Copie as coordenadas que aparecerem
+            latGalpao: -23.550520,  // ← COLOQUE SUA LATITUDE AQUI
+            lonGalpao: -46.633308,  // ← COLOQUE SUA LONGITUDE AQUI
+            
+            raioMaximo: 100, // metros (distância máxima para permitir check-in)
+            storageKey: 'rodaCoopEBA5_fila',
+            senhaAdmin: 'eba52026'  // ← Senha atualizada
+        };
+
+        // Estado global
+        let estado = {
+            vagas: [],
+            listaEspera: [],
+            usuarioAtual: null,
+            localizacaoValida: false,
+            fotoCapturada: false
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDados();
+            inicializarVagas();
+            verificarPermissaoLocalizacao();
+        });
+
+        function carregarDados() {
+            const dados = localStorage.getItem(CONFIG.storageKey);
+            if (dados) {
+                const parseado = JSON.parse(dados);
+                estado.vagas = parseado.vagas || [];
+                estado.listaEspera = parseado.listaEspera || [];
+            }
+        }
+
+        function salvarDados() {
+            localStorage.setItem(CONFIG.storageKey, JSON.stringify({
+                vagas: estado.vagas,
+                listaEspera: estado.listaEspera
+            }));
+            atualizarStats();
+        }
+
+        function inicializarVagas() {
+            if (estado.vagas.length === 0) {
+                for (let i = 1; i <= CONFIG.totalVagas; i++) {
+                    estado.vagas.push({
+                        numero: i,
+                        ocupada: false,
+                        nome: null,
+                        telefone: null,
+                        placa: null,
+                        foto: null,
+                        horario: null,
+                        lat: null,
+                        lon: null
+                    });
+                }
+                salvarDados();
+            }
+        }
+
+        function verificarPermissaoLocalizacao() {
+            if (!navigator.geolocation) {
+                alert('Seu navegador não suporta geolocalização. Algumas funcionalidades podem não funcionar.');
+            }
+        }
+
+        // Navegação
+        function iniciarAcesso() {
+            document.getElementById('locationAlert').classList.remove('hidden');
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const distancia = calcularDistancia(
+                        CONFIG.latGalpao,
+                        CONFIG.lonGalpao,
+                        position.coords.latitude,
+                        position.coords.longitude
+                    );
+
+                    document.getElementById('locationAlert').classList.add('hidden');
+                    
+                    if (distancia <= CONFIG.raioMaximo) {
+                        estado.localizacaoValida = true;
+                        document.getElementById('menuPrincipal').classList.remove('hidden');
+                        document.getElementById('telaInicial').classList.add('hidden');
+                        atualizarStats();
+                    } else {
+                        alert(`⚠️ Você está a ${Math.round(distancia)}m do galpão.\n\nÉ necessário estar a no máximo ${CONFIG.raioMaximo}m para acessar o sistema.\n\nPosição atual:\nLat: ${position.coords.latitude.toFixed(6)}\nLon: ${position.coords.longitude.toFixed(6)}`);
+                    }
+                },
+                (error) => {
+                    document.getElementById('locationAlert').classList.add('hidden');
+                    let msg = 'Não foi possível obter sua localização.\n\n';
+                    if (error.code === 1) msg += 'Permita o acesso ao GPS no seu navegador.';
+                    else if (error.code === 2) msg += 'Sinal de GPS indisponível.';
+                    else if (error.code === 3) msg += 'Tempo esgotado. Tente novamente.';
+                    alert(msg);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        function mostrarVagas() {
+            esconderTodasSections();
+            document.getElementById('sectionVagas').classList.remove('hidden');
+            renderizarVagas();
+        }
+
+        function mostrarListaEspera() {
+            esconderTodasSections();
+            document.getElementById('sectionListaEspera').classList.remove('hidden');
+            renderizarListaEspera();
+        }
+
+        function minhaVaga() {
+            esconderTodasSections();
+            document.getElementById('sectionMinhaVaga').classList.remove('hidden');
+            renderizarMinhaVaga();
+        }
+
+        function esconderTodasSections() {
+            document.getElementById('sectionVagas').classList.add('hidden');
+            document.getElementById('sectionListaEspera').classList.add('hidden');
+            document.getElementById('sectionMinhaVaga').classList.add('hidden');
+        }
+
+        function voltarMenu() {
+            document.getElementById('formCheckin').classList.add('hidden');
+            document.getElementById('panelAdmin').classList.add('hidden');
+            esconderTodasSections();
+            document.getElementById('menuPrincipal').classList.remove('hidden');
+        }
+
+        // Renderização
+        function renderizarVagas() {
+            const grid = document.getElementById('vagasGrid');
+            grid.innerHTML = '';
+
+            let ocupadas = 0;
+
+            estado.vagas.forEach(vaga => {
+                const div = document.createElement('div');
+                div.className = 'vaga-card';
+                
+                if (vaga.ocupada) {
+                    ocupadas++;
+                    div.classList.add('ocupada');
+                    div.innerHTML = `
+                        <div class="vaga-numero">V${vaga.numero}</div>
+                        <div class="vaga-status">Ocupada</div>
+                        <div class="vaga-placa">${vaga.placa}</div>
+                    `;
+                } else {
+                    div.classList.add('livre');
+                    div.innerHTML = `
+                        <div class="vaga-numero">V${vaga.numero}</div>
+                        <div class="vaga-status">Livre</div>
+                        <div style="margin-top: 8px; font-size: 0.75em; color: var(--success);">Toque para ocupar</div>
+                    `;
+                    div.onclick = () => selecionarVaga(vaga.numero);
+                }
+
+                grid.appendChild(div);
+            });
+
+            // Atualizar barra de progresso
+            const porcentagem = (ocupadas / CONFIG.totalVagas) * 100;
+            document.getElementById('progressVagas').style.width = porcentagem + '%';
+        }
+
+        function renderizarListaEspera() {
+            const container = document.getElementById('listaEsperaContent');
+            
+            if (estado.listaEspera.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Ninguém na lista de espera no momento.</p>';
+                return;
+            }
+
+            container.innerHTML = estado.listaEspera.map((item, index) => `
+                <div class="lista-espera">
+                    <div class="espera-item">
+                        <div style="display: flex; align-items: center;">
+                            <div class="espera-posicao">${index + 1}</div>
+                            <div class="espera-info">
+                                <div class="espera-nome">${item.nome}</div>
+                                <div class="espera-placa">${item.placa}</div>
+                            </div>
+                        </div>
+                        <span class="badge badge-warning">${item.horario}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderizarMinhaVaga() {
+            const container = document.getElementById('minhaVagaContent');
+            const telefone = localStorage.getItem('telefoneUsuario');
+            
+            if (!telefone) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Você não possui nenhuma vaga ocupada no momento.</p>';
+                return;
+            }
+
+            const minhaVaga = estado.vagas.find(v => v.telefone === telefone && v.ocupada);
+            
+            if (minhaVaga) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🚗</div>
+                        <h3 style="color: var(--primary); margin-bottom: 10px;">Vaga ${minhaVaga.numero}</h3>
+                        <p><strong>Placa:</strong> ${minhaVaga.placa}</p>
+                        <p><strong>Horário:</strong> ${minhaVaga.horario}</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-danger" onclick="liberarVaga(${minhaVaga.numero})">
+                                🚪 Liberar Vaga
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const posicaoEspera = estado.listaEspera.findIndex(item => item.telefone === telefone);
+                
+                if (posicaoEspera >= 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 3em; margin-bottom: 10px;">⏳</div>
+                            <h3 style="color: var(--warning); margin-bottom: 10px;">Lista de Espera</h3>
+                            <p>Você está na posição <strong style="color: var(--primary); font-size: 1.5em;">${posicaoEspera + 1}</strong></p>
+                            <p style="color: #888; margin-top: 10px;">Aguarde a liberação de uma vaga</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: #666;">Você não possui nenhuma vaga ou posição na lista de espera.</p>';
+                }
+            }
+        }
+
+        // Check-in
+        function selecionarVaga(numero) {
+            if (!estado.localizacaoValida) {
+                alert('Localização não verificada. Por favor, reinicie o acesso.');
+                return;
+            }
+
+            const vaga = estado.vagas.find(v => v.numero === numero);
+            if (vaga.ocupada) {
+                alert('Esta vaga já está ocupada!');
+                return;
+            }
+
+            document.getElementById('menuPrincipal').classList.add('hidden');
+            document.getElementById('formCheckin').classList.remove('hidden');
+            document.getElementById('vagaSelecionadaNum').textContent = numero;
+            
+            iniciarCamera();
+        }
+
+        function iniciarCamera() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('photoElement');
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                .then(stream => {
+                    video.srcObject = stream;
+                    window.cameraStream = stream;
+                })
+                .catch(err => {
+                    alert('Não foi possível acessar a câmera. Verifique as permissões.');
+                    console.error(err);
+                });
+        }
+
+        function tirarFoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('photoElement');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            const fotoBase64 = canvas.toDataURL('image/jpeg');
+            document.getElementById('fotoBase64').value = fotoBase64;
+            
+            video.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            
+            document.getElementById('btnTirarFoto').classList.add('hidden');
+            document.getElementById('btnNovaFoto').classList.remove('hidden');
+            
+            estado.fotoCapturada = true;
+            document.getElementById('btnConfirmarVaga').disabled = false;
+        }
+
+        function novaFoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('photoElement');
+            
+            video.classList.remove('hidden');
+            canvas.classList.add('hidden');
+            
+            document.getElementById('btnTirarFoto').classList.remove('hidden');
+            document.getElementById('btnNovaFoto').classList.add('hidden');
+            
+            estado.fotoCapturada = false;
+            document.getElementById('btnConfirmarVaga').disabled = true;
+            document.getElementById('fotoBase64').value = '';
+        }
+
+        function confirmarVaga() {
+            const nome = document.getElementById('inputNome').value.trim();
+            const telefone = document.getElementById('inputTelefone').value.trim();
+            const placa = document.getElementById('inputPlaca').value.toUpperCase().trim();
+            const foto = document.getElementById('fotoBase64').value;
+            const numeroVaga = parseInt(document.getElementById('vagaSelecionadaNum').textContent);
+
+            // Validações
+            if (!nome || !telefone || !placa || !foto) {
+                alert('Por favor, preencha todos os campos e tire a selfie.');
+                return;
+            }
+
+            // Verificar se telefone ou placa já estão em uso
+            const telefoneEmUso = estado.vagas.some(v => v.telefone === telefone && v.ocupada);
+            const placaEmUso = estado.vagas.some(v => v.placa === placa && v.ocupada);
+
+            if (telefoneEmUso) {
+                alert('Este telefone já possui uma vaga ocupada!');
+                return;
+            }
+
+            if (placaEmUso) {
+                alert('Esta placa já possui uma vaga ocupada!');
+                return;
+            }
+
+            // Ocupar vaga
+            const vaga = estado.vagas.find(v => v.numero === numeroVaga);
+            const agora = new Date();
+            const horario = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            vaga.ocupada = true;
+            vaga.nome = nome;
+            vaga.telefone = telefone;
+            vaga.placa = placa;
+            vaga.foto = foto;
+            vaga.horario = horario;
+            vaga.lat = CONFIG.latGalpao;
+            vaga.lon = CONFIG.lonGalpao;
+
+            // Salvar telefone do usuário atual
+            localStorage.setItem('telefoneUsuario', telefone);
+            localStorage.setItem('nomeUsuario', nome);
+
+            salvarDados();
+            
+            // Parar câmera
+            if (window.cameraStream) {
+                window.cameraStream.getTracks().forEach(track => track.stop());
+            }
+
+            alert(`✅ Vaga ${numeroVaga} ocupada com sucesso!\nHorário: ${horario}`);
+            
+            // Resetar formulário
+            document.getElementById('inputNome').value = '';
+            document.getElementById('inputTelefone').value = '';
+            document.getElementById('inputPlaca').value = '';
+            novaFoto();
+            
+            voltarMenu();
+            mostrarVagas();
+        }
+
+        function cancelarCheckin() {
+            if (window.cameraStream) {
+                window.cameraStream.getTracks().forEach(track => track.stop());
+            }
+            voltarMenu();
+        }
+
+        function liberarVaga(numero) {
+            if (!confirm('Deseja realmente liberar esta vaga?')) return;
+
+            const vaga = estado.vagas.find(v => v.numero === numero);
+            vaga.ocupada = false;
+            vaga.nome = null;
+            vaga.telefone = null;
+            vaga.placa = null;
+            vaga.foto = null;
+            vaga.horario = null;
+
+            // Remover da lista de espera se houver
+            estado.listaEspera = estado.listaEspera.filter(item => item.telefone !== vaga.telefone);
+
+            localStorage.removeItem('telefoneUsuario');
+            localStorage.removeItem('nomeUsuario');
+
+            salvarDados();
+            renderizarMinhaVaga();
+            atualizarStats();
+        }
+
+        // Admin
+        function abrirAdmin() {
+            const senha = prompt('Digite a senha de administrador:');
+            if (senha !== CONFIG.senhaAdmin) {
+                if (senha !== null) alert('Senha incorreta!');
+                return;
+            }
+
+            document.getElementById('menuPrincipal').classList.add('hidden');
+            document.getElementById('panelAdmin').classList.remove('hidden');
+            renderizarAdmin();
+        }
+
+        function renderizarAdmin() {
+            const container = document.getElementById('adminContent');
+            const vagasOcupadas = estado.vagas.filter(v => v.ocupada);
+
+            if (vagasOcupadas.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma vaga ocupada no momento.</p>';
+                return;
+            }
+
+            container.innerHTML = vagasOcupadas.map(vaga => `
+                <div class="admin-item">
+                    <div>
+                        <strong style="color: var(--primary);">Vaga ${vaga.numero}</strong><br>
+                        <small>${vaga.nome}</small><br>
+                        <small style="color: #888;">${vaga.placa} - ${vaga.horario}</small>
+                    </div>
+                    <button class="btn btn-danger" style="width: auto; padding: 8px 16px; margin: 0;" onclick="adminRemoverVaga(${vaga.numero})">
+                        Remover
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function adminRemoverVaga(numero) {
+            if (!confirm(`Remover ocupação da vaga ${numero}?`)) return;
+
+            const vaga = estado.vagas.find(v => v.numero === numero);
+            vaga.ocupada = false;
+            vaga.nome = null;
+            vaga.telefone = null;
+            vaga.placa = null;
+            vaga.foto = null;
+            vaga.horario = null;
+
+            salvarDados();
+            renderizarAdmin();
+        }
+
+        function fecharAdmin() {
+            voltarMenu();
+        }
+
+        // Utilitários
+        function atualizarStats() {
+            const ocupadas = estado.vagas.filter(v => v.ocupada).length;
+            document.getElementById('vagasOcupadas').textContent = ocupadas;
+            document.getElementById('vagasLivres').textContent = CONFIG.totalVagas - ocupadas;
+            document.getElementById('listaEsperaCount').textContent = estado.listaEspera.length;
+        }
+
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // metros
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // Prevenir múltiplas abas
+        window.addEventListener('storage', (e) => {
+            if (e.key === CONFIG.storageKey) {
+                carregarDados();
+                if (!document.getElementById('sectionVagas').classList.contains('hidden')) {
+                    renderizarVagas();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
