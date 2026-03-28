@@ -32,7 +32,6 @@
             overflow-x: hidden;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             padding: 20px;
@@ -79,14 +78,12 @@
             letter-spacing: 1px;
         }
 
-        /* Container */
         .container {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Cards */
         .card {
             background: var(--gray);
             border-radius: 16px;
@@ -125,7 +122,6 @@
             border-radius: 2px;
         }
 
-        /* Buttons */
         .btn {
             width: 100%;
             padding: 16px 24px;
@@ -170,12 +166,16 @@
             color: white;
         }
 
+        .btn-info {
+            background: #2196F3;
+            color: white;
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        /* Form */
         .form-group {
             margin-bottom: 16px;
         }
@@ -204,7 +204,16 @@
             border-color: var(--primary);
         }
 
-        /* Grid de Vagas */
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
         .vagas-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -266,7 +275,6 @@
             color: var(--primary);
         }
 
-        /* Lista de Espera */
         .lista-espera {
             background: var(--dark);
             border-radius: 8px;
@@ -313,7 +321,6 @@
             color: #888;
         }
 
-        /* Status Badge */
         .badge {
             display: inline-block;
             padding: 4px 12px;
@@ -338,7 +345,6 @@
             color: var(--warning);
         }
 
-        /* Camera/Selfie */
         .camera-container {
             position: relative;
             width: 100%;
@@ -361,7 +367,6 @@
             margin-top: 12px;
         }
 
-        /* Alertas */
         .alert {
             padding: 16px;
             border-radius: 8px;
@@ -390,12 +395,11 @@
         }
 
         .alert-info {
-            background: rgba(255, 107, 0, 0.1);
-            border-left: 4px solid var(--primary);
-            color: var(--primary);
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196F3;
+            color: #2196F3;
         }
 
-        /* QR Code Scanner */
         .qr-container {
             text-align: center;
             padding: 40px 20px;
@@ -407,27 +411,10 @@
             opacity: 0.5;
         }
 
-        /* Loading */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Hidden */
         .hidden {
             display: none !important;
         }
 
-        /* Admin Panel */
         .admin-panel {
             background: var(--dark);
             border: 2px solid var(--primary);
@@ -443,7 +430,33 @@
             margin-bottom: 8px;
         }
 
-        /* Responsive */
+        .config-section {
+            background: var(--dark);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .config-section h4 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .current-location {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .current-location strong {
+            color: var(--primary);
+        }
+
         @media (max-width: 480px) {
             .logo {
                 font-size: 1.8em;
@@ -460,9 +473,12 @@
             .card {
                 padding: 16px;
             }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
         }
 
-        /* Footer */
         .footer {
             text-align: center;
             padding: 20px;
@@ -476,7 +492,6 @@
             text-decoration: underline;
         }
 
-        /* Progress Bar */
         .progress-bar {
             width: 100%;
             height: 6px;
@@ -515,24 +530,11 @@
             text-transform: uppercase;
         }
 
-        /* Info Box */
-        .info-box {
-            background: rgba(255, 107, 0, 0.1);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        .info-box h4 {
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-
-        .info-box p {
-            font-size: 0.85em;
-            color: #B0B0B0;
-            line-height: 1.5;
+        .help-text {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 4px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -548,12 +550,6 @@
         <div id="locationAlert" class="alert alert-warning hidden">
             <span>📍</span>
             <span>Ativando GPS... Por favor, aguarde.</span>
-        </div>
-
-        <!-- Alerta Importante sobre Sincronização -->
-        <div id="syncAlert" class="alert alert-info">
-            <span>ℹ️</span>
-            <span><strong>Versão Local:</strong> Para ver a lista completa de todos os motoristas em tempo real, é necessário conectar ao banco de dados. Contate o administrador.</span>
         </div>
 
         <!-- Stats -->
@@ -572,7 +568,7 @@
             </div>
         </div>
 
-        <!-- Tela Inicial / QR Code -->
+        <!-- Tela Inicial -->
         <div id="telaInicial" class="card">
             <div class="card-title">Bem-vindo ao Sistema de Fila</div>
             <div class="qr-container">
@@ -695,9 +691,51 @@
         <!-- Painel Admin -->
         <div id="panelAdmin" class="card admin-panel hidden">
             <div class="card-title">🔧 Painel Administrativo</div>
-            <div id="adminContent">
-                <!-- Lista de ocupações -->
+            
+            <!-- Seção de Configuração de Coordenadas -->
+            <div class="config-section">
+                <h4>📍 Configuração do Galpão</h4>
+                
+                <div class="current-location" id="currentLocationDisplay">
+                    <strong>Sua localização atual:</strong><br>
+                    Carregando...
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Latitude do Galpão</label>
+                        <input type="number" step="any" id="configLat" class="form-input" placeholder="-23.550520">
+                        <div class="help-text">Ex: -23.550520</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude do Galpão</label>
+                        <input type="number" step="any" id="configLon" class="form-input" placeholder="-46.633308">
+                        <div class="help-text">Ex: -46.633308</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Raio Máximo (metros)</label>
+                    <input type="number" id="configRaio" class="form-input" placeholder="100">
+                    <div class="help-text">Distância máxima para permitir check-in</div>
+                </div>
+
+                <button class="btn btn-success" onclick="salvarConfiguracoes()">
+                    💾 Salvar Configurações
+                </button>
+                <button class="btn btn-info" onclick="usarLocalizacaoAtual()">
+                    📍 Usar Minha Localização Atual
+                </button>
             </div>
+
+            <!-- Seção de Vagas Ocupadas -->
+            <div class="config-section">
+                <h4>🚗 Vagas Ocupadas</h4>
+                <div id="adminContent">
+                    <!-- Lista de ocupações -->
+                </div>
+            </div>
+
             <button class="btn btn-secondary" onclick="fecharAdmin()">
                 Fechar Painel Admin
             </button>
@@ -713,22 +751,29 @@
     </div>
 
     <script>
-        // ============================================
-        // ⚙️ CONFIGURAÇÕES - AJUSTE AQUI
-        // ============================================
-        const CONFIG = {
+        // Configurações padrão
+        const CONFIG_DEFAULT = {
             totalVagas: 10,
-            
-            // 📍 COORDENADAS DO GALPÃO - AJUSTE AQUI
-            // Como obter: Abra Google Maps, toque e segure no local do galpão
-            // Copie as coordenadas que aparecerem
-            latGalpao: -23.550520,  // ← COLOQUE SUA LATITUDE AQUI
-            lonGalpao: -46.633308,  // ← COLOQUE SUA LONGITUDE AQUI
-            
-            raioMaximo: 100, // metros (distância máxima para permitir check-in)
-            storageKey: 'rodaCoopEBA5_fila',
-            senhaAdmin: 'eba52026'  // ← Senha atualizada
+            latGalpao: -23.550520,
+            lonGalpao: -46.633308,
+            raioMaximo: 100,
+            senhaAdmin: 'eba52026'
         };
+
+        // Carregar configurações salvas ou usar padrão
+        function getCONFIG() {
+            const saved = localStorage.getItem('rodaCoopEBA5_config');
+            if (saved) {
+                return { ...CONFIG_DEFAULT, ...JSON.parse(saved) };
+            }
+            return CONFIG_DEFAULT;
+        }
+
+        function saveConfig(config) {
+            localStorage.setItem('rodaCoopEBA5_config', JSON.stringify(config));
+        }
+
+        let CONFIG = getCONFIG();
 
         // Estado global
         let estado = {
@@ -736,7 +781,9 @@
             listaEspera: [],
             usuarioAtual: null,
             localizacaoValida: false,
-            fotoCapturada: false
+            fotoCapturada: false,
+            currentLat: null,
+            currentLon: null
         };
 
         // Inicialização
@@ -747,7 +794,7 @@
         });
 
         function carregarDados() {
-            const dados = localStorage.getItem(CONFIG.storageKey);
+            const dados = localStorage.getItem('rodaCoopEBA5_fila');
             if (dados) {
                 const parseado = JSON.parse(dados);
                 estado.vagas = parseado.vagas || [];
@@ -756,7 +803,7 @@
         }
 
         function salvarDados() {
-            localStorage.setItem(CONFIG.storageKey, JSON.stringify({
+            localStorage.setItem('rodaCoopEBA5_fila', JSON.stringify({
                 vagas: estado.vagas,
                 listaEspera: estado.listaEspera
             }));
@@ -784,8 +831,24 @@
 
         function verificarPermissaoLocalizacao() {
             if (!navigator.geolocation) {
-                alert('Seu navegador não suporta geolocalização. Algumas funcionalidades podem não funcionar.');
+                alert('Seu navegador não suporta geolocalização.');
             }
+        }
+
+        function obterLocalizacaoAtual() {
+            return new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        estado.currentLat = position.coords.latitude;
+                        estado.currentLon = position.coords.longitude;
+                        resolve({ lat: position.coords.latitude, lon: position.coords.longitude });
+                    },
+                    (error) => {
+                        reject(error);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
         }
 
         // Navegação
@@ -809,7 +872,7 @@
                         document.getElementById('telaInicial').classList.add('hidden');
                         atualizarStats();
                     } else {
-                        alert(`⚠️ Você está a ${Math.round(distancia)}m do galpão.\n\nÉ necessário estar a no máximo ${CONFIG.raioMaximo}m para acessar o sistema.\n\nPosição atual:\nLat: ${position.coords.latitude.toFixed(6)}\nLon: ${position.coords.longitude.toFixed(6)}`);
+                        alert(`⚠️ Você está a ${Math.round(distancia)}m do galpão.\n\nÉ necessário estar a no máximo ${CONFIG.raioMaximo}m.\n\nCoordenadas do galpão configuradas:\nLat: ${CONFIG.latGalpao}\nLon: ${CONFIG.lonGalpao}\n\nContate o administrador para ajustar.`);
                     }
                 },
                 (error) => {
@@ -887,7 +950,6 @@
                 grid.appendChild(div);
             });
 
-            // Atualizar barra de progresso
             const porcentagem = (ocupadas / CONFIG.totalVagas) * 100;
             document.getElementById('progressVagas').style.width = porcentagem + '%';
         }
@@ -981,7 +1043,6 @@
 
         function iniciarCamera() {
             const video = document.getElementById('videoElement');
-            const canvas = document.getElementById('photoElement');
             
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
                 .then(stream => {
@@ -1038,13 +1099,11 @@
             const foto = document.getElementById('fotoBase64').value;
             const numeroVaga = parseInt(document.getElementById('vagaSelecionadaNum').textContent);
 
-            // Validações
             if (!nome || !telefone || !placa || !foto) {
                 alert('Por favor, preencha todos os campos e tire a selfie.');
                 return;
             }
 
-            // Verificar se telefone ou placa já estão em uso
             const telefoneEmUso = estado.vagas.some(v => v.telefone === telefone && v.ocupada);
             const placaEmUso = estado.vagas.some(v => v.placa === placa && v.ocupada);
 
@@ -1058,7 +1117,6 @@
                 return;
             }
 
-            // Ocupar vaga
             const vaga = estado.vagas.find(v => v.numero === numeroVaga);
             const agora = new Date();
             const horario = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -1069,23 +1127,18 @@
             vaga.placa = placa;
             vaga.foto = foto;
             vaga.horario = horario;
-            vaga.lat = CONFIG.latGalpao;
-            vaga.lon = CONFIG.lonGalpao;
 
-            // Salvar telefone do usuário atual
             localStorage.setItem('telefoneUsuario', telefone);
             localStorage.setItem('nomeUsuario', nome);
 
             salvarDados();
             
-            // Parar câmera
             if (window.cameraStream) {
                 window.cameraStream.getTracks().forEach(track => track.stop());
             }
 
             alert(`✅ Vaga ${numeroVaga} ocupada com sucesso!\nHorário: ${horario}`);
             
-            // Resetar formulário
             document.getElementById('inputNome').value = '';
             document.getElementById('inputTelefone').value = '';
             document.getElementById('inputPlaca').value = '';
@@ -1113,7 +1166,6 @@
             vaga.foto = null;
             vaga.horario = null;
 
-            // Remover da lista de espera se houver
             estado.listaEspera = estado.listaEspera.filter(item => item.telefone !== vaga.telefone);
 
             localStorage.removeItem('telefoneUsuario');
@@ -1124,8 +1176,8 @@
             atualizarStats();
         }
 
-        // Admin
-        function abrirAdmin() {
+        // Admin e Configurações
+        async function abrirAdmin() {
             const senha = prompt('Digite a senha de administrador:');
             if (senha !== CONFIG.senhaAdmin) {
                 if (senha !== null) alert('Senha incorreta!');
@@ -1134,7 +1186,65 @@
 
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('panelAdmin').classList.remove('hidden');
+            
+            // Preencher campos de configuração
+            document.getElementById('configLat').value = CONFIG.latGalpao;
+            document.getElementById('configLon').value = CONFIG.lonGalpao;
+            document.getElementById('configRaio').value = CONFIG.raioMaximo;
+            
+            // Tentar obter localização atual para exibir
+            try {
+                const pos = await obterLocalizacaoAtual();
+                document.getElementById('currentLocationDisplay').innerHTML = `
+                    <strong>Sua localização atual:</strong><br>
+                    Latitude: ${pos.lat.toFixed(6)}<br>
+                    Longitude: ${pos.lon.toFixed(6)}
+                `;
+            } catch (error) {
+                document.getElementById('currentLocationDisplay').innerHTML = `
+                    <strong>Sua localização atual:</strong><br>
+                    Não foi possível obter (permita o GPS)
+                `;
+            }
+            
             renderizarAdmin();
+        }
+
+        function salvarConfiguracoes() {
+            const lat = parseFloat(document.getElementById('configLat').value);
+            const lon = parseFloat(document.getElementById('configLon').value);
+            const raio = parseInt(document.getElementById('configRaio').value);
+
+            if (isNaN(lat) || isNaN(lon) || isNaN(raio)) {
+                alert('Por favor, preencha todos os campos corretamente!');
+                return;
+            }
+
+            // Atualizar CONFIG
+            CONFIG.latGalpao = lat;
+            CONFIG.lonGalpao = lon;
+            CONFIG.raioMaximo = raio;
+
+            // Salvar no localStorage
+            saveConfig({
+                latGalpao: lat,
+                lonGalpao: lon,
+                raioMaximo: raio,
+                senhaAdmin: CONFIG.senhaAdmin
+            });
+
+            alert(`✅ Configurações salvas com sucesso!\n\nGalpão configurado:\nLatitude: ${lat}\nLongitude: ${lon}\nRaio: ${raio}m`);
+        }
+
+        async function usarLocalizacaoAtual() {
+            try {
+                const pos = await obterLocalizacaoAtual();
+                document.getElementById('configLat').value = pos.lat.toFixed(6);
+                document.getElementById('configLon').value = pos.lon.toFixed(6);
+                alert('📍 Localização atual preenchida!\n\nAgora clique em "Salvar Configurações"');
+            } catch (error) {
+                alert('Não foi possível obter sua localização. Verifique se o GPS está ativado.');
+            }
         }
 
         function renderizarAdmin() {
@@ -1188,7 +1298,7 @@
         }
 
         function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // metros
+            const R = 6371e3;
             const φ1 = lat1 * Math.PI / 180;
             const φ2 = lat2 * Math.PI / 180;
             const Δφ = (lat2 - lat1) * Math.PI / 180;
@@ -1202,9 +1312,9 @@
             return R * c;
         }
 
-        // Prevenir múltiplas abas
+        // Atualizar ao mudar de aba
         window.addEventListener('storage', (e) => {
-            if (e.key === CONFIG.storageKey) {
+            if (e.key === 'rodaCoopEBA5_fila') {
                 carregarDados();
                 if (!document.getElementById('sectionVagas').classList.contains('hidden')) {
                     renderizarVagas();
