@@ -149,7 +149,7 @@
 <body>
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
-        <div>Conectando ao sistema em tempo real...</div>
+        <div>Carregando configurações do galpão...</div>
     </div>
 
     <header class="header">
@@ -166,7 +166,7 @@
 
         <div id="locationAlert" class="alert alert-warning hidden">
             <span>📍</span>
-            <span>Ativando GPS... Por favor, aguarde.</span>
+            <span>Verificando localização...</span>
         </div>
 
         <div class="stats">
@@ -184,7 +184,7 @@
             </div>
         </div>
 
-        <div id="telaInicial" class="card">
+        <div id="telaInicial" class="card hidden">
             <div class="card-title">Bem-vindo ao Sistema de Fila</div>
             <div class="qr-container">
                 <div class="qr-icon">📱</div>
@@ -230,7 +230,10 @@
 
         <div id="formCheckin" class="card hidden">
             <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
-            <div class="alert alert-warning"><span>📍</span><span id="statusLocalizacao">Verificando localização...</span></div>
+            <div class="alert alert-success" id="alertDistancia" style="display:none">
+                <span>✅</span>
+                <span id="msgDistancia">Você está no galpão!</span>
+            </div>
             <div class="form-group">
                 <label class="form-label">Nome Completo</label>
                 <input type="text" id="inputNome" class="form-input" placeholder="Digite seu nome">
@@ -283,7 +286,7 @@
                     <input type="number" id="configRaio" class="form-input" placeholder="100">
                     <div class="help-text">Distância máxima para permitir check-in</div>
                 </div>
-                <button class="btn btn-success" onclick="salvarConfiguracoes()">💾 Salvar Configurações</button>
+                <button class="btn btn-success" onclick="salvarConfiguracoesFirebase()">💾 Salvar no Firebase</button>
                 <button class="btn btn-info" onclick="usarLocalizacaoAtual()">📍 Usar Minha Localização Atual</button>
             </div>
             <div class="config-section">
@@ -305,7 +308,7 @@
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-        // 🔥 FIREBASE CONFIG - SUBSTITUA COM SEUS DADOS
+        // 🔥 FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDc1TZ-ODFoUCBHGrhqPBtzwqg7PUF1zxE",
             authDomain: "rodacoop-eba5-fila.firebaseapp.com",
@@ -319,22 +322,58 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const CONFIG_DEFAULT = {
-            totalVagas: 10, latGalpao: -23.550520, lonGalpao: -46.633308, raioMaximo: 100, senhaAdmin: 'eba52026'
+        // Configurações (serão carregadas do Firebase)
+        let CONFIG = {
+            totalVagas: 10,
+            latGalpao: -23.550520,
+            lonGalpao: -46.633308,
+            raioMaximo: 100,
+            senhaAdmin: 'eba52026'
         };
 
-        function getCONFIG() {
-            const saved = localStorage.getItem('rodaCoopEBA5_config');
-            return saved ? { ...CONFIG_DEFAULT, ...JSON.parse(saved) } : CONFIG_DEFAULT;
+        let estado = { 
+            vagas: [], 
+            listaEspera: [], 
+            localizacaoValida: false, 
+            fotoCapturada: false, 
+            configCarregada: false,
+            distanciaAtual: 0
+        };
+
+        // Carregar configurações do Firebase
+        async function carregarConfiguracoes() {
+            try {
+                const configDoc = await getDocs(collection(db, 'config'));
+                if (!configDoc.empty) {
+                    configDoc.forEach(doc => {
+                        const data = doc.data();
+                        if (data.latGalpao) CONFIG.latGalpao = data.latGalpao;
+                        if (data.lonGalpao) CONFIG.lonGalpao = data.lonGalpao;
+                        if (data.raioMaximo) CONFIG.raioMaximo = data.raioMaximo;
+                        if (data.senhaAdmin) CONFIG.senhaAdmin = data.senhaAdmin;
+                    });
+                    console.log('✅ Configurações carregadas:', CONFIG);
+                }
+                estado.configCarregada = true;
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('telaInicial').classList.remove('hidden');
+                atualizarSyncStatus(true);
+            } catch (err) {
+                console.error('Erro ao carregar config:', err);
+                document.getElementById('loadingOverlay').innerHTML = `
+                    <div style="color: #FF1744; text-align: center; padding: 20px;">
+                        <h3>⚠️ Erro ao carregar configurações</h3>
+                        <p>Verifique se a coleção "config" foi criada no Firebase.</p>
+                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px; max-width: 200px;">Tentar Novamente</button>
+                    </div>
+                `;
+            }
         }
-        function saveConfig(cfg) { localStorage.setItem('rodaCoopEBA5_config', JSON.stringify(cfg)); }
 
-        let CONFIG = getCONFIG();
-        let estado = { vagas: [], listaEspera: [], localizacaoValida: false, fotoCapturada: false, currentLat: null, currentLon: null };
-
-        // Autenticar e iniciar sincronização
+        // Autenticar e iniciar
         signInAnonymously(auth).then(() => {
             console.log('✅ Autenticado');
+            carregarConfiguracoes();
             iniciarSincronizacao();
         }).catch(err => {
             console.error('Erro auth:', err);
@@ -343,20 +382,17 @@
         });
 
         function iniciarSincronizacao() {
-            // Ouvir vagas em tempo real
             const qVagas = query(collection(db, 'vagas'), orderBy('numero'));
             onSnapshot(qVagas, (snap) => {
                 estado.vagas = [];
                 snap.forEach(d => estado.vagas.push({ id: d.id, ...d.data() }));
                 atualizarUI();
-                document.getElementById('loadingOverlay').classList.add('hidden');
                 atualizarSyncStatus(true);
             }, (err) => {
                 console.error('Erro vagas:', err);
                 atualizarSyncStatus(false);
             });
 
-            // Ouvir lista de espera em tempo real
             const qEspera = query(collection(db, 'listaEspera'), orderBy('posicao'));
             onSnapshot(qEspera, (snap) => {
                 estado.listaEspera = [];
@@ -367,12 +403,12 @@
 
         function atualizarSyncStatus(online) {
             const el = document.getElementById('syncStatus');
-            if (online) {
+            if (online && estado.configCarregada) {
                 el.className = 'sync-status online';
                 el.innerHTML = '<div class="sync-dot"></div><span>✅ Online - Tempo Real</span>';
             } else {
                 el.className = 'sync-status offline';
-                el.innerHTML = '<div class="sync-dot"></div><span>⚠️ Offline</span>';
+                el.innerHTML = '<div class="sync-dot"></div><span>⏳ Carregando...</span>';
             }
         }
 
@@ -385,25 +421,36 @@
 
         // Exportar funções globais
         window.iniciarAcesso = function() {
+            if (!estado.configCarregada) {
+                alert('⏳ Carregando configurações do galpão... Aguarde alguns segundos e tente novamente.');
+                return;
+            }
+            
             document.getElementById('locationAlert').classList.remove('hidden');
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const dist = calcularDistancia(CONFIG.latGalpao, CONFIG.lonGalpao, pos.coords.latitude, pos.coords.longitude);
+                    estado.distanciaAtual = dist;
                     document.getElementById('locationAlert').classList.add('hidden');
+                    
                     if (dist <= CONFIG.raioMaximo) {
                         estado.localizacaoValida = true;
                         document.getElementById('menuPrincipal').classList.remove('hidden');
                         document.getElementById('telaInicial').classList.add('hidden');
                         atualizarStats();
                     } else {
-                        alert(`⚠️ Você está a ${Math.round(dist)}m do galpão.\nMáximo permitido: ${CONFIG.raioMaximo}m`);
+                        alert(`⚠️ Você está a ${Math.round(dist)}m do galpão.\n\nMáximo permitido: ${CONFIG.raioMaximo}m\n\nCoordenadas do galpão:\nLat: ${CONFIG.latGalpao}\nLon: ${CONFIG.lonGalpao}\n\nContate o administrador se estiver no local.`);
                     }
                 },
                 (err) => {
                     document.getElementById('locationAlert').classList.add('hidden');
-                    alert('Não foi possível obter localização. Verifique o GPS.');
+                    let msg = 'Não foi possível obter localização.\n\n';
+                    if (err.code === 1) msg += 'Permita o acesso ao GPS no seu navegador.';
+                    else if (err.code === 2) msg += 'Sinal de GPS indisponível.';
+                    else if (err.code === 3) msg += 'Tempo esgotado. Tente novamente.';
+                    alert(msg);
                 },
-                { enableHighAccuracy: true, timeout: 10000 }
+                { enableHighAccuracy: true, timeout: 15000 }
             );
         };
 
@@ -489,12 +536,20 @@
         }
 
         window.selecionarVaga = function(num) {
-            if (!estado.localizacaoValida) { alert('Localização não verificada. Reinicie o acesso.'); return; }
+            if (!estado.localizacaoValida) { 
+                alert('Localização não verificada. Reinicie o acesso.'); 
+                return; 
+            }
             const vaga = estado.vagas.find(v => v.numero === num);
             if (vaga.ocupada) { alert('Vaga já ocupada!'); return; }
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('formCheckin').classList.remove('hidden');
             document.getElementById('vagaSelecionadaNum').textContent = num;
+            
+            // Mostrar distância atual
+            document.getElementById('alertDistancia').style.display = 'flex';
+            document.getElementById('msgDistancia').textContent = `Você está a ${Math.round(estado.distanciaAtual)}m do galpão.`;
+            
             iniciarCamera();
         };
 
@@ -577,7 +632,6 @@
                 const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
                 document.getElementById('currentLocationDisplay').innerHTML = `<strong>Sua localização atual:</strong><br>Lat: ${pos.coords.latitude.toFixed(6)}<br>Lon: ${pos.coords.longitude.toFixed(6)}`;
             } catch { document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localização atual:</strong><br>Não foi possível obter (permita GPS)'; }
-            renderizarAdmin();
         };
 
         function renderizarAdmin() {
@@ -601,14 +655,32 @@
 
         window.fecharAdmin = function() { window.voltarMenu(); };
 
-        window.salvarConfiguracoes = function() {
+        // SALVAR CONFIGURAÇÕES NO FIREBASE
+        window.salvarConfiguracoesFirebase = async function() {
             const lat = parseFloat(document.getElementById('configLat').value);
             const lon = parseFloat(document.getElementById('configLon').value);
             const raio = parseInt(document.getElementById('configRaio').value);
             if (isNaN(lat) || isNaN(lon) || isNaN(raio)) { alert('Preencha todos os campos corretamente!'); return; }
-            CONFIG.latGalpao = lat; CONFIG.lonGalpao = lon; CONFIG.raioMaximo = raio;
-            saveConfig({ latGalpao: lat, lonGalpao: lon, raioMaximo: raio, senhaAdmin: CONFIG.senhaAdmin });
-            alert(`✅ Configurações salvas!\nGalpão: ${lat}, ${lon}\nRaio: ${raio}m`);
+            
+            try {
+                await setDoc(doc(db, 'config', 'geral'), {
+                    latGalpao: lat,
+                    lonGalpao: lon,
+                    raioMaximo: raio,
+                    senhaAdmin: CONFIG.senhaAdmin,
+                    atualizadoEm: new Date().toISOString()
+                });
+                
+                // Atualizar CONFIG local
+                CONFIG.latGalpao = lat;
+                CONFIG.lonGalpao = lon;
+                CONFIG.raioMaximo = raio;
+                
+                alert(`✅ Configurações salvas no Firebase!\n\nGalpão: ${lat}, ${lon}\nRaio: ${raio}m\n\nTodos os motoristas agora usarão estas coordenadas!`);
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao salvar configurações. Verifique se a coleção "config" existe no Firebase.');
+            }
         };
 
         window.usarLocalizacaoAtual = async function() {
@@ -616,7 +688,7 @@
                 const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
                 document.getElementById('configLat').value = pos.coords.latitude.toFixed(6);
                 document.getElementById('configLon').value = pos.coords.longitude.toFixed(6);
-                alert('📍 Localização preenchida! Clique em "Salvar Configurações"');
+                alert('📍 Localização preenchida! Clique em "Salvar no Firebase"');
             } catch { alert('Não foi possível obter localização. Verifique o GPS.'); }
         };
 
