@@ -64,14 +64,14 @@
         .form-input:focus { outline: none; border-color: var(--primary); }
         .form-input::placeholder { color: #666; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .vagas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .vagas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .vaga-card {
             background: var(--dark); border: 2px solid var(--light-gray); border-radius: 12px;
-            padding: 16px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+            padding: 12px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
         }
         .vaga-card:hover:not(.ocupada):not(.disabled) { border-color: var(--primary); transform: translateY(-2px); }
         .vaga-card.livre { border-color: var(--success); background: rgba(0, 200, 83, 0.1); }
-        .vaga-card.ocupada { border-color: var(--danger); background: rgba(255, 23, 68, 0.1); opacity: 0.7; cursor: not-allowed; }
+        .vaga-card.ocupada { border-color: var(--danger); background: rgba(255, 23, 68, 0.1); opacity: 0.9; cursor: pointer; }
         .vaga-card.minha-vaga {
             border-color: var(--primary); background: rgba(255, 107, 0, 0.2);
             box-shadow: 0 0 20px rgba(255, 107, 0, 0.3); animation: pulse 2s infinite;
@@ -80,6 +80,10 @@
         .vaga-numero { font-size: 1.5em; font-weight: 700; margin-bottom: 4px; }
         .vaga-status { font-size: 0.75em; text-transform: uppercase; font-weight: 600; }
         .vaga-placa { font-size: 0.85em; margin-top: 8px; font-weight: 600; color: var(--primary); }
+        .vaga-foto {
+            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--primary); margin: 8px auto; display: block;
+        }
         .lista-espera { background: var(--dark); border-radius: 8px; padding: 12px; margin-top: 12px; }
         .espera-item { padding: 10px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
         .espera-item:last-child { border-bottom: none; }
@@ -144,6 +148,102 @@
             border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* 🔓 Slider para Liberar Vaga */
+        .slider-container {
+            background: var(--dark);
+            border-radius: 50px;
+            height: 60px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid var(--danger);
+        }
+        .slider-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #666;
+            z-index: 1;
+        }
+        .slider-handle {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--danger), #D50000);
+            border-radius: 50%;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            z-index: 2;
+            transition: transform 0.1s;
+            box-shadow: 0 2px 10px rgba(255, 23, 68, 0.5);
+            touch-action: none;
+        }
+        .slider-handle:active { cursor: grabbing; }
+        .slider-handle.completed {
+            animation: successPulse 0.5s ease-out;
+        }
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .slider-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #00E676);
+            width: 0%;
+            z-index: 0;
+            transition: width 0.1s;
+        }
+        
+        /* Modal de Vaga */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--gray);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid var(--primary);
+        }
+        .modal-foto {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            margin: 0 auto 16px;
+            display: block;
+        }
+        .modal-nome { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; color: var(--primary); }
+        .modal-placa { font-size: 1.1em; margin-bottom: 8px; }
+        .modal-horario { color: #888; margin-bottom: 20px; }
+        .btn-close { background: var(--light-gray); margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -299,6 +399,19 @@
         <div class="footer">
             <p>RODACOOP - EBA5 © 2026</p>
             <p style="margin-top: 8px;"><span class="admin-link" onclick="abrirAdmin()">Acesso Restrito</span></p>
+        </div>
+    </div>
+
+    <!-- Modal de Vaga -->
+    <div id="modalVaga" class="modal-overlay hidden">
+        <div class="modal-content">
+            <img id="modalFoto" class="modal-foto" src="" alt="Foto do Motorista">
+            <div id="modalNome" class="modal-nome"></div>
+            <div id="modalPlaca" class="modal-placa"></div>
+            <div id="modalHorario" class="modal-horario"></div>
+            <div id="modalAcoes">
+                <button class="btn btn-danger" onclick="fecharModal()">Fechar</button>
+            </div>
         </div>
     </div>
 
@@ -480,8 +593,21 @@
                     div.classList.add('ocupada');
                     const ehMinha = vaga.telefone === telUser;
                     if (ehMinha) div.classList.add('minha-vaga');
-                    div.innerHTML = `<div class="vaga-numero">V${vaga.numero}</div><div class="vaga-status">${ehMinha?'MINHA VAGA':'Ocupada'}</div><div class="vaga-placa">${vaga.placa}</div>`;
-                    if (ehMinha) div.onclick = () => { if(confirm('Liberar esta vaga?')) liberarVaga(vaga.id, vaga.numero); };
+                    
+                    let html = `<div class="vaga-numero">V${vaga.numero}</div>`;
+                    
+                    // Mostrar foto se existir
+                    if (vaga.foto) {
+                        html += `<img src="${vaga.foto}" class="vaga-foto" alt="Foto">`;
+                    }
+                    
+                    html += `<div class="vaga-status">${ehMinha?'MINHA VAGA':'Ocupada'}</div>`;
+                    html += `<div class="vaga-placa">${vaga.placa}</div>`;
+                    
+                    div.innerHTML = html;
+                    
+                    // Clique para ver detalhes
+                    div.onclick = () => abrirModalVaga(vaga);
                 } else {
                     div.classList.add('livre');
                     div.innerHTML = `<div class="vaga-numero">V${vaga.numero}</div><div class="vaga-status">Livre</div><div style="margin-top:8px;font-size:0.75em;color:var(--success)">Toque para ocupar</div>`;
@@ -490,6 +616,122 @@
                 grid.appendChild(div);
             });
             document.getElementById('progressVagas').style.width = `${(ocupadas/CONFIG.totalVagas)*100}%`;
+        }
+
+        // Modal de Vaga
+        window.abrirModalVaga = function(vaga) {
+            const modal = document.getElementById('modalVaga');
+            const foto = document.getElementById('modalFoto');
+            const nome = document.getElementById('modalNome');
+            const placa = document.getElementById('modalPlaca');
+            const horario = document.getElementById('modalHorario');
+            const acoes = document.getElementById('modalAcoes');
+            
+            if (vaga.foto) {
+                foto.src = vaga.foto;
+                foto.style.display = 'block';
+            } else {
+                foto.style.display = 'none';
+            }
+            
+            nome.textContent = vaga.nome || 'Não informado';
+            placa.textContent = `🚗 ${vaga.placa || '---'}`;
+            horario.textContent = `⏰ Chegou às ${vaga.horario || '--:--'}`;
+            
+            // Botão de liberar (só para o dono da vaga ou admin)
+            const telUser = localStorage.getItem('telefoneUsuario');
+            const ehAdmin = localStorage.getItem('isAdmin');
+            
+            if (vaga.telefone === telUser || ehAdmin) {
+                acoes.innerHTML = `
+                    <div style="margin-bottom: 12px; color: #888; font-size: 0.85em;">Deslize para liberar a vaga</div>
+                    <div class="slider-container" id="sliderLiberar">
+                        <div class="slider-track" id="sliderTrack"></div>
+                        <div class="slider-text">🔓 DESLIZE PARA LIBERAR</div>
+                        <div class="slider-handle" id="sliderHandle">➜</div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                `;
+                
+                // Inicializar slider
+                setTimeout(() => initSlider(vaga.id, vaga.numero), 100);
+            } else {
+                acoes.innerHTML = `<button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>`;
+            }
+            
+            modal.classList.remove('hidden');
+        };
+
+        window.fecharModal = function() {
+            document.getElementById('modalVaga').classList.add('hidden');
+        };
+
+        // Slider para liberar vaga
+        function initSlider(vagaId, numero) {
+            const slider = document.getElementById('sliderLiberar');
+            const handle = document.getElementById('sliderHandle');
+            const track = document.getElementById('sliderTrack');
+            
+            if (!slider || !handle || !track) return;
+            
+            let isDragging = false;
+            let startX = 0;
+            const maxWidth = slider.offsetWidth - handle.offsetWidth - 8;
+            
+            const onStart = (e) => {
+                isDragging = true;
+                startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                handle.style.transition = 'none';
+            };
+            
+            const onMove = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                const currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                let deltaX = currentX - startX;
+                
+                if (deltaX < 0) deltaX = 0;
+                if (deltaX > maxWidth) deltaX = maxWidth;
+                
+                handle.style.transform = `translateX(${deltaX}px)`;
+                track.style.width = `${(deltaX / maxWidth) * 100}%`;
+            };
+            
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                
+                const currentTransform = handle.style.transform;
+                const match = currentTransform.match(/translateX\((\d+)px\)/);
+                const currentX = match ? parseInt(match[1]) : 0;
+                
+                if (currentX >= maxWidth - 20) {
+                    // Completou!
+                    handle.classList.add('completed');
+                    track.style.background = 'linear-gradient(90deg, var(--success), #00E676)';
+                    document.getElementById('sliderLiberar').querySelector('.slider-text').textContent = '✅ VAGA LIBERADA!';
+                    
+                    setTimeout(() => {
+                        liberarVaga(vagaId, numero);
+                        fecharModal();
+                    }, 500);
+                } else {
+                    // Voltar
+                    handle.style.transition = 'transform 0.3s';
+                    handle.style.transform = 'translateX(0px)';
+                    track.style.width = '0%';
+                }
+            };
+            
+            handle.addEventListener('mousedown', onStart);
+            handle.addEventListener('touchstart', onStart);
+            
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
         }
 
         function renderizarListaEspera() {
@@ -514,12 +756,19 @@
             if (!tel) { container.innerHTML = '<p style="text-align:center;color:#666">Você não possui vaga ocupada.</p>'; return; }
             const minha = estado.vagas.find(v => v.telefone === tel && v.ocupada);
             if (minha) {
-                container.innerHTML = `<div style="text-align:center;padding:20px">
-                    <div style="font-size:3em;margin-bottom:10px">🚗</div>
-                    <h3 style="color:var(--primary);margin-bottom:10px">Vaga ${minha.numero}</h3>
+                let html = `<div style="text-align:center;padding:20px">
+                    <div style="font-size:3em;margin-bottom:10px">🚗</div>`;
+                
+                if (minha.foto) {
+                    html += `<img src="${minha.foto}" style="width:100px;height:100px;border-radius:50%;border:3px solid var(--primary);margin:10px auto;display:block">`;
+                }
+                
+                html += `<h3 style="color:var(--primary);margin-bottom:10px">Vaga ${minha.numero}</h3>
                     <p><strong>Placa:</strong> ${minha.placa}</p><p><strong>Horário:</strong> ${minha.horario}</p>
-                    <div style="margin-top:20px"><button class="btn btn-danger" onclick="liberarVaga('${minha.id}', ${minha.numero})">🚪 Liberar Vaga</button></div>
+                    <div style="margin-top:20px;color:#888;font-size:0.9em">👆 Toque na vaga para liberar</div>
                 </div>`;
+                
+                container.innerHTML = html;
             } else {
                 const pos = estado.listaEspera.findIndex(i => i.telefone === tel);
                 if (pos >= 0) {
@@ -546,7 +795,6 @@
             document.getElementById('formCheckin').classList.remove('hidden');
             document.getElementById('vagaSelecionadaNum').textContent = num;
             
-            // Mostrar distância atual
             document.getElementById('alertDistancia').style.display = 'flex';
             document.getElementById('msgDistancia').textContent = `Você está a ${Math.round(estado.distanciaAtual)}m do galpão.`;
             
@@ -593,7 +841,7 @@
             const vaga = estado.vagas.find(v => v.numero === numVaga);
             const horario = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
             try {
-                await updateDoc(doc(db, 'vagas', vaga.id), { ocupada: true, nome, telefone, placa, horario });
+                await updateDoc(doc(db, 'vagas', vaga.id), { ocupada: true, nome, telefone, placa, horario, foto });
                 localStorage.setItem('telefoneUsuario', telefone);
                 if (window.cameraStream) window.cameraStream.getTracks().forEach(t => t.stop());
                 alert(`✅ Vaga ${numVaga} ocupada! Horário: ${horario}`);
@@ -610,12 +858,12 @@
 
         window.liberarVaga = async function(vagaId, numero) {
             try {
-                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '' });
+                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '', foto: '' });
                 const tel = localStorage.getItem('telefoneUsuario');
                 const espera = await getDocs(query(collection(db, 'listaEspera')));
                 for (const d of espera.docs) if (d.data().telefone === tel) await updateDoc(d.ref, { ativo: false });
                 localStorage.removeItem('telefoneUsuario'); localStorage.removeItem('nomeUsuario');
-                alert(`Vaga ${numero} liberada!`);
+                alert(`✅ Vaga ${numero} liberada com sucesso!`);
                 window.voltarMenu();
             } catch (e) { console.error(e); alert('Erro ao liberar vaga.'); }
         };
@@ -623,6 +871,7 @@
         window.abrirAdmin = async function() {
             const senha = prompt('Senha de administrador:');
             if (senha !== CONFIG.senhaAdmin) { if (senha !== null) alert('Senha incorreta!'); return; }
+            localStorage.setItem('isAdmin', 'true');
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('panelAdmin').classList.remove('hidden');
             document.getElementById('configLat').value = CONFIG.latGalpao;
@@ -632,6 +881,7 @@
                 const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
                 document.getElementById('currentLocationDisplay').innerHTML = `<strong>Sua localização atual:</strong><br>Lat: ${pos.coords.latitude.toFixed(6)}<br>Lon: ${pos.coords.longitude.toFixed(6)}`;
             } catch { document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localização atual:</strong><br>Não foi possível obter (permita GPS)'; }
+            renderizarAdmin();
         };
 
         function renderizarAdmin() {
@@ -640,7 +890,10 @@
             if (ocupadas.length === 0) { container.innerHTML = '<p style="text-align:center;color:#666">Nenhuma vaga ocupada.</p>'; return; }
             container.innerHTML = ocupadas.map(v => `
                 <div class="admin-item">
-                    <div><strong style="color:var(--primary)">Vaga ${v.numero}</strong><br><small>${v.nome}</small><br><small style="color:#888">${v.placa} - ${v.horario}</small></div>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        ${v.foto ? `<img src="${v.foto}" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--primary)">` : ''}
+                        <div><strong style="color:var(--primary)">Vaga ${v.numero}</strong><br><small>${v.nome}</small><br><small style="color:#888">${v.placa} - ${v.horario}</small></div>
+                    </div>
                     <button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga('${v.id}', ${v.numero})">Remover</button>
                 </div>`).join('');
         }
@@ -648,14 +901,16 @@
         window.adminRemoverVaga = async function(vagaId, numero) {
             if (!confirm(`Remover ocupação da vaga ${numero}?`)) return;
             try {
-                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '' });
+                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '', foto: '' });
                 renderizarAdmin();
             } catch (e) { console.error(e); alert('Erro ao remover.'); }
         };
 
-        window.fecharAdmin = function() { window.voltarMenu(); };
+        window.fecharAdmin = function() { 
+            localStorage.removeItem('isAdmin');
+            window.voltarMenu(); 
+        };
 
-        // SALVAR CONFIGURAÇÕES NO FIREBASE
         window.salvarConfiguracoesFirebase = async function() {
             const lat = parseFloat(document.getElementById('configLat').value);
             const lon = parseFloat(document.getElementById('configLon').value);
@@ -671,7 +926,6 @@
                     atualizadoEm: new Date().toISOString()
                 });
                 
-                // Atualizar CONFIG local
                 CONFIG.latGalpao = lat;
                 CONFIG.lonGalpao = lon;
                 CONFIG.raioMaximo = raio;
