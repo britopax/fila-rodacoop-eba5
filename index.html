@@ -64,14 +64,14 @@
         .form-input:focus { outline: none; border-color: var(--primary); }
         .form-input::placeholder { color: #666; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .vagas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .vagas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .vaga-card {
             background: var(--dark); border: 2px solid var(--light-gray); border-radius: 12px;
             padding: 12px; text-align: center; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
         }
         .vaga-card:hover:not(.ocupada):not(.disabled) { border-color: var(--primary); transform: translateY(-2px); }
         .vaga-card.livre { border-color: var(--success); background: rgba(0, 200, 83, 0.1); }
-        .vaga-card.ocupada { border-color: var(--danger); background: rgba(255, 23, 68, 0.1); opacity: 0.9; cursor: pointer; }
+        .vaga-card.ocupada { border-color: var(--danger); background: rgba(255, 23, 68, 0.1); opacity: 0.95; cursor: pointer; }
         .vaga-card.minha-vaga {
             border-color: var(--primary); background: rgba(255, 107, 0, 0.2);
             box-shadow: 0 0 20px rgba(255, 107, 0, 0.3); animation: pulse 2s infinite;
@@ -79,21 +79,28 @@
         @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.3); } 50% { box-shadow: 0 0 30px rgba(255, 107, 0, 0.6); } }
         .vaga-numero { font-size: 1.5em; font-weight: 700; margin-bottom: 4px; }
         .vaga-status { font-size: 0.75em; text-transform: uppercase; font-weight: 600; }
-        .vaga-placa { font-size: 0.85em; margin-top: 8px; font-weight: 600; color: var(--primary); }
         .vaga-foto {
-            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+            width: 70px; height: 70px; border-radius: 50%; object-fit: cover;
             border: 2px solid var(--primary); margin: 8px auto; display: block;
         }
+        .vaga-nome { font-size: 0.85em; font-weight: 600; margin: 4px 0; color: var(--secondary); }
+        .vaga-placa { font-size: 0.8em; font-weight: 700; color: var(--primary); margin: 4px 0; }
+        .vaga-data-hora { font-size: 0.7em; color: #888; margin-top: 4px; }
         .lista-espera { background: var(--dark); border-radius: 8px; padding: 12px; margin-top: 12px; }
-        .espera-item { padding: 10px; border-bottom: 1px solid var(--light-gray); display: flex; justify-content: space-between; align-items: center; }
+        .espera-item { padding: 10px; border-bottom: 1px solid var(--light-gray); display: flex; gap: 12px; align-items: center; }
         .espera-item:last-child { border-bottom: none; }
+        .espera-foto {
+            width: 50px; height: 50px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--primary); flex-shrink: 0;
+        }
         .espera-posicao {
             background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
         }
-        .espera-info { flex: 1; }
-        .espera-nome { font-weight: 600; }
-        .espera-placa { font-size: 0.85em; color: #888; }
+        .espera-info { flex: 1; text-align: left; }
+        .espera-nome { font-weight: 600; font-size: 0.95em; }
+        .espera-placa { font-size: 0.85em; color: var(--primary); font-weight: 700; }
+        .espera-data-hora { font-size: 0.75em; color: #888; }
         .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; }
         .badge-success { background: rgba(0, 200, 83, 0.2); color: var(--success); }
         .badge-danger { background: rgba(255, 23, 68, 0.2); color: var(--danger); }
@@ -120,7 +127,7 @@
         .current-location strong { color: var(--primary); }
         @media (max-width: 480px) {
             .logo { font-size: 1.8em; } .subtitle { font-size: 0.95em; }
-            .vagas-grid { grid-template-columns: repeat(3, 1fr); } .card { padding: 16px; } .form-row { grid-template-columns: 1fr; }
+            .vagas-grid { grid-template-columns: repeat(2, 1fr); } .card { padding: 16px; } .form-row { grid-template-columns: 1fr; }
         }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.85em; }
         .admin-link { color: var(--primary); cursor: pointer; text-decoration: underline; }
@@ -169,7 +176,7 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.95em;
+            font-size: 0.9em;
             text-transform: uppercase;
             letter-spacing: 2px;
             color: #888;
@@ -217,7 +224,7 @@
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -232,6 +239,8 @@
             width: 100%;
             text-align: center;
             border: 2px solid var(--primary);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-foto {
             width: 150px;
@@ -244,7 +253,8 @@
         }
         .modal-nome { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; color: var(--primary); }
         .modal-placa { font-size: 1.1em; margin-bottom: 8px; }
-        .modal-horario { color: #888; margin-bottom: 20px; }
+        .modal-horario { color: #888; margin-bottom: 4px; }
+        .modal-data { color: var(--warning); font-size: 0.9em; margin-bottom: 20px; }
         .btn-close { background: var(--light-gray); margin-top: 12px; }
         
         /* Minha Vaga Destaque */
@@ -278,13 +288,20 @@
             font-weight: 700;
             color: var(--primary);
         }
-        .minha-vaga-destaque .vaga-placa-grande {
-            font-size: 1.2em;
+        .minha-vaga-destaque .vaga-nome-grande {
+            font-size: 1em;
             margin: 4px 0;
+            color: var(--secondary);
         }
-        .minha-vaga-destaque .vaga-horario {
+        .minha-vaga-destaque .vaga-placa-grande {
+            font-size: 1.1em;
+            margin: 4px 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .minha-vaga-destaque .vaga-data-hora {
             color: #888;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         .slider-label {
             text-align: center;
@@ -293,6 +310,32 @@
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+        
+        /* QR Code Admin */
+        .qr-admin-container {
+            text-align: center;
+            padding: 20px;
+            background: var(--dark);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 2px solid var(--primary);
+        }
+        .qr-admin-container img {
+            max-width: 200px;
+            border: 4px solid var(--secondary);
+            border-radius: 8px;
+            background: white;
+            padding: 8px;
+        }
+        .qr-admin-container p {
+            margin-top: 12px;
+            color: #888;
+            font-size: 0.85em;
+        }
+        .btn-compartilhar {
+            background: var(--success);
+            margin-top: 12px;
         }
     </style>
 </head>
@@ -416,6 +459,20 @@
 
         <div id="panelAdmin" class="card admin-panel hidden">
             <div class="card-title">🔧 Painel Administrativo</div>
+            
+            <!-- QR Code para Motoristas -->
+            <div class="config-section">
+                <h4>📱 QR Code para Motoristas</h4>
+                <div class="qr-admin-container">
+                    <img id="qrCodeImage" src="" alt="QR Code de Acesso">
+                    <p>Mostre este QR Code para os motoristas escanearem</p>
+                    <button class="btn btn-compartilhar" onclick="compartilharQRCode()">📤 Compartilhar QR Code</button>
+                </div>
+                <p style="color: #888; font-size: 0.85em; text-align: center;">
+                    🔗 Link: https://britopax.github.io/fila-rodacoop-eba5/
+                </p>
+            </div>
+            
             <div class="config-section">
                 <h4>📍 Configuração do Galpão</h4>
                 <div class="current-location" id="currentLocationDisplay"><strong>Sua localização atual:</strong><br>Carregando...</div>
@@ -459,6 +516,7 @@
             <div id="modalNome" class="modal-nome"></div>
             <div id="modalPlaca" class="modal-placa"></div>
             <div id="modalHorario" class="modal-horario"></div>
+            <div id="modalData" class="modal-data"></div>
             <div id="modalAcoes">
                 <button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>
             </div>
@@ -502,6 +560,9 @@
             configCarregada: false,
             distanciaAtual: 0
         };
+
+        // URL do sistema para QR Code
+        const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
 
         // Carregar configurações do Firebase
         async function carregarConfiguracoes() {
@@ -629,6 +690,21 @@
             document.getElementById('menuPrincipal').classList.remove('hidden');
         };
 
+        function formatarDataHora(dataISO) {
+            if (!dataISO) return {  '--/--/--', hora: '--:--' };
+            const data = new Date(dataISO);
+            const dia = String(data.getDate()).padStart(2, '0');
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            const horas = String(data.getHours()).padStart(2, '0');
+            const minutos = String(data.getMinutes()).padStart(2, '0');
+            return {
+                 `${dia}/${mes}/${ano}`,
+                hora: `${horas}:${minutos}`,
+                completo: `${dia}/${mes}/${ano} às ${horas}:${minutos}`
+            };
+        }
+
         function renderizarVagas() {
             const grid = document.getElementById('vagasGrid');
             grid.innerHTML = '';
@@ -644,14 +720,17 @@
                     const ehMinha = vaga.telefone === telUser;
                     if (ehMinha) div.classList.add('minha-vaga');
                     
+                    const dataHora = formatarDataHora(vaga.dataHora);
+                    
                     let html = `<div class="vaga-numero">V${vaga.numero}</div>`;
                     
                     if (vaga.foto) {
                         html += `<img src="${vaga.foto}" class="vaga-foto" alt="Foto">`;
                     }
                     
-                    html += `<div class="vaga-status">${ehMinha?'MINHA VAGA':'Ocupada'}</div>`;
-                    html += `<div class="vaga-placa">${vaga.placa}</div>`;
+                    html += `<div class="vaga-nome">${vaga.nome || 'Não informado'}</div>`;
+                    html += `<div class="vaga-placa">🚗 ${vaga.placa || '---'}</div>`;
+                    html += `<div class="vaga-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>`;
                     
                     div.innerHTML = html;
                     div.onclick = () => abrirModalVaga(vaga);
@@ -672,6 +751,7 @@
             const nome = document.getElementById('modalNome');
             const placa = document.getElementById('modalPlaca');
             const horario = document.getElementById('modalHorario');
+            const dataEl = document.getElementById('modalData');
             const acoes = document.getElementById('modalAcoes');
             
             if (vaga.foto) {
@@ -681,9 +761,12 @@
                 foto.style.display = 'none';
             }
             
+            const dataHora = formatarDataHora(vaga.dataHora);
+            
             nome.textContent = vaga.nome || 'Não informado';
             placa.textContent = `🚗 ${vaga.placa || '---'}`;
-            horario.textContent = `⏰ Chegou às ${vaga.horario || '--:--'}`;
+            horario.textContent = `🕐 Horário: ${dataHora.hora}`;
+            dataEl.textContent = `📅 Data: ${dataHora.data}`;
             acoes.innerHTML = `<button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>`;
             
             modal.classList.remove('hidden');
@@ -699,14 +782,21 @@
                 container.innerHTML = '<p style="text-align:center;color:#666;padding:20px">Ninguém na lista de espera.</p>';
                 return;
             }
-            container.innerHTML = estado.listaEspera.map((item, idx) => `
+            container.innerHTML = estado.listaEspera.map((item, idx) => {
+                const dataHora = formatarDataHora(item.dataHora);
+                return `
                 <div class="lista-espera"><div class="espera-item">
-                    <div style="display:flex;align-items:center">
+                    ${item.foto ? `<img src="${item.foto}" class="espera-foto" alt="Foto">` : '<div style="width:50px;height:50px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-shrink:0">👤</div>'}
+                    <div style="display:flex;align-items:center;flex:1">
                         <div class="espera-posicao">${item.posicao || idx+1}</div>
-                        <div class="espera-info"><div class="espera-nome">${item.nome}</div><div class="espera-placa">${item.placa}</div></div>
+                        <div class="espera-info">
+                            <div class="espera-nome">${item.nome || 'Não informado'}</div>
+                            <div class="espera-placa">🚗 ${item.placa || '---'}</div>
+                            <div class="espera-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>
+                        </div>
                     </div>
-                    <span class="badge badge-warning">${item.horario}</span>
-                </div></div>`).join('');
+                </div></div>`;
+            }).join('');
         }
 
         function renderizarMinhaVaga() {
@@ -721,14 +811,17 @@
             const minha = estado.vagas.find(v => v.telefone === tel && v.ocupada);
             
             if (minha) {
+                const dataHora = formatarDataHora(minha.dataHora);
+                
                 let html = `
                     <div class="minha-vaga-destaque">
                         <div class="vaga-info">
-                            ${minha.foto ? `<img src="${minha.foto}" class="vaga-foto-grande" alt="Foto">` : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em">👤</div>'}
+                            ${minha.foto ? `<img src="${minha.foto}" class="vaga-foto-grande" alt="Foto">` : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em;flex-shrink:0">👤</div>'}
                             <div class="vaga-detalhes">
                                 <div class="vaga-numero-grande">Vaga ${minha.numero}</div>
+                                <div class="vaga-nome-grande">${minha.nome || 'Não informado'}</div>
                                 <div class="vaga-placa-grande">🚗 ${minha.placa}</div>
-                                <div class="vaga-horario">⏰ Chegou às ${minha.horario}</div>
+                                <div class="vaga-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>
                             </div>
                         </div>
                     </div>
@@ -747,7 +840,6 @@
                 
                 container.innerHTML = html;
                 
-                // Inicializar slider após renderizar
                 setTimeout(() => initSlider(minha.id, minha.numero), 200);
             } else {
                 const pos = estado.listaEspera.findIndex(i => i.telefone === tel);
@@ -884,12 +976,19 @@
             if (estado.vagas.some(v => v.telefone === telefone && v.ocupada)) { alert('Telefone já possui vaga!'); return; }
             if (estado.vagas.some(v => v.placa === placa && v.ocupada)) { alert('Placa já possui vaga!'); return; }
             const vaga = estado.vagas.find(v => v.numero === numVaga);
-            const horario = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+            const dataHora = new Date().toISOString();
             try {
-                await updateDoc(doc(db, 'vagas', vaga.id), { ocupada: true, nome, telefone, placa, horario, foto });
+                await updateDoc(doc(db, 'vagas', vaga.id), { 
+                    ocupada: true, 
+                    nome, 
+                    telefone, 
+                    placa, 
+                    dataHora,
+                    foto 
+                });
                 localStorage.setItem('telefoneUsuario', telefone);
                 if (window.cameraStream) window.cameraStream.getTracks().forEach(t => t.stop());
-                alert(`✅ Vaga ${numVaga} ocupada! Horário: ${horario}`);
+                alert(`✅ Vaga ${numVaga} ocupada!\n📅 ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}`);
                 ['inputNome','inputTelefone','inputPlaca'].forEach(id => document.getElementById(id).value = '');
                 window.novaFoto();
                 window.voltarMenu(); window.mostrarVagas();
@@ -903,7 +1002,7 @@
 
         window.liberarVaga = async function(vagaId, numero) {
             try {
-                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '', foto: '' });
+                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                 const tel = localStorage.getItem('telefoneUsuario');
                 const espera = await getDocs(query(collection(db, 'listaEspera')));
                 for (const d of espera.docs) if (d.data().telefone === tel) await updateDoc(d.ref, { ativo: false });
@@ -911,6 +1010,33 @@
                 alert(`✅ Vaga ${numero} liberada com sucesso!`);
                 window.voltarMenu();
             } catch (e) { console.error(e); alert('Erro ao liberar vaga.'); }
+        };
+
+        // Gerar QR Code
+        function gerarQRCode() {
+            const qrImage = document.getElementById('qrCodeImage');
+            const urlCodificada = encodeURIComponent(SISTEMA_URL);
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${urlCodificada}&color=000000&bgcolor=ffffff`;
+        }
+
+        window.compartilharQRCode = async function() {
+            const qrImage = document.getElementById('qrCodeImage');
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'RODACOOP - EBA5 | Sistema de Fila',
+                        text: 'Escaneie o QR Code para acessar o sistema de fila!',
+                        url: SISTEMA_URL
+                    });
+                } catch (err) {
+                    console.log('Compartilhamento cancelado');
+                }
+            } else {
+                // Fallback: copiar link
+                await navigator.clipboard.writeText(SISTEMA_URL);
+                alert('📋 Link copiado!\n\n' + SISTEMA_URL + '\n\nCole no WhatsApp ou onde preferir!');
+            }
         };
 
         window.abrirAdmin = async function() {
@@ -922,6 +1048,10 @@
             document.getElementById('configLat').value = CONFIG.latGalpao;
             document.getElementById('configLon').value = CONFIG.lonGalpao;
             document.getElementById('configRaio').value = CONFIG.raioMaximo;
+            
+            // Gerar QR Code
+            gerarQRCode();
+            
             try {
                 const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
                 document.getElementById('currentLocationDisplay').innerHTML = `<strong>Sua localização atual:</strong><br>Lat: ${pos.coords.latitude.toFixed(6)}<br>Lon: ${pos.coords.longitude.toFixed(6)}`;
@@ -933,20 +1063,27 @@
             const container = document.getElementById('adminContent');
             const ocupadas = estado.vagas.filter(v => v.ocupada);
             if (ocupadas.length === 0) { container.innerHTML = '<p style="text-align:center;color:#666">Nenhuma vaga ocupada.</p>'; return; }
-            container.innerHTML = ocupadas.map(v => `
+            container.innerHTML = ocupadas.map(v => {
+                const dataHora = formatarDataHora(v.dataHora);
+                return `
                 <div class="admin-item">
                     <div style="display:flex;align-items:center;gap:12px">
                         ${v.foto ? `<img src="${v.foto}" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--primary)">` : ''}
-                        <div><strong style="color:var(--primary)">Vaga ${v.numero}</strong><br><small>${v.nome}</small><br><small style="color:#888">${v.placa} - ${v.horario}</small></div>
+                        <div style="text-align:left">
+                            <strong style="color:var(--primary)">Vaga ${v.numero}</strong><br>
+                            <small>${v.nome || 'Não informado'}</small><br>
+                            <small style="color:#888">🚗 ${v.placa} | 📅 ${dataHora.data} ${dataHora.hora}</small>
+                        </div>
                     </div>
                     <button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga('${v.id}', ${v.numero})">Remover</button>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
 
         window.adminRemoverVaga = async function(vagaId, numero) {
             if (!confirm(`Remover ocupação da vaga ${numero}?`)) return;
             try {
-                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', horario: '', foto: '' });
+                await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                 renderizarAdmin();
             } catch (e) { console.error(e); alert('Erro ao remover.'); }
         };
