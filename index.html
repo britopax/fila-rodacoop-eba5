@@ -155,8 +155,6 @@
             border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* 🔓 Slider para Liberar Vaga */
         .slider-container {
             background: var(--dark);
             border-radius: 50px;
@@ -219,8 +217,6 @@
             z-index: 0;
             transition: width 0.1s;
         }
-        
-        /* Modal de Vaga */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -256,8 +252,6 @@
         .modal-horario { color: #888; margin-bottom: 4px; }
         .modal-data { color: var(--warning); font-size: 0.9em; margin-bottom: 20px; }
         .btn-close { background: var(--light-gray); margin-top: 12px; }
-        
-        /* Minha Vaga Destaque */
         .minha-vaga-destaque {
             background: linear-gradient(135deg, rgba(255, 107, 0, 0.2), rgba(230, 81, 0, 0.3));
             border: 2px solid var(--primary);
@@ -311,8 +305,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
-        /* QR Code Admin */
         .qr-admin-container {
             text-align: center;
             padding: 20px;
@@ -460,7 +452,6 @@
         <div id="panelAdmin" class="card admin-panel hidden">
             <div class="card-title">🔧 Painel Administrativo</div>
             
-            <!-- QR Code para Motoristas -->
             <div class="config-section">
                 <h4>📱 QR Code para Motoristas</h4>
                 <div class="qr-admin-container">
@@ -509,7 +500,6 @@
         </div>
     </div>
 
-    <!-- Modal de Vaga -->
     <div id="modalVaga" class="modal-overlay hidden">
         <div class="modal-content">
             <img id="modalFoto" class="modal-foto" src="" alt="Foto do Motorista">
@@ -523,13 +513,11 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-        // 🔥 FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDc1TZ-ODFoUCBHGrhqPBtzwqg7PUF1zxE",
             authDomain: "rodacoop-eba5-fila.firebaseapp.com",
@@ -543,7 +531,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Configurações (serão carregadas do Firebase)
         let CONFIG = {
             totalVagas: 10,
             latGalpao: -23.550520,
@@ -561,10 +548,8 @@
             distanciaAtual: 0
         };
 
-        // URL do sistema para QR Code
         const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
 
-        // Carregar configurações do Firebase
         async function carregarConfiguracoes() {
             try {
                 const configDoc = await getDocs(collection(db, 'config'));
@@ -576,33 +561,25 @@
                         if (data.raioMaximo) CONFIG.raioMaximo = data.raioMaximo;
                         if (data.senhaAdmin) CONFIG.senhaAdmin = data.senhaAdmin;
                     });
-                    console.log('✅ Configurações carregadas:', CONFIG);
+                    console.log('Configuracoes carregadas:', CONFIG);
                 }
-                estado.configCarregada = true;
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('telaInicial').classList.remove('hidden');
-                atualizarSyncStatus(true);
             } catch (err) {
                 console.error('Erro ao carregar config:', err);
-                document.getElementById('loadingOverlay').innerHTML = `
-                    <div style="color: #FF1744; text-align: center; padding: 20px;">
-                        <h3>⚠️ Erro ao carregar configurações</h3>
-                        <p>Verifique se a coleção "config" foi criada no Firebase.</p>
-                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px; max-width: 200px;">Tentar Novamente</button>
-                    </div>
-                `;
             }
+            estado.configCarregada = true;
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('telaInicial').classList.remove('hidden');
+            atualizarSyncStatus(true);
         }
 
-        // Autenticar e iniciar
         signInAnonymously(auth).then(() => {
-            console.log('✅ Autenticado');
+            console.log('Autenticado');
             carregarConfiguracoes();
             iniciarSincronizacao();
         }).catch(err => {
             console.error('Erro auth:', err);
             document.getElementById('loadingOverlay').classList.add('hidden');
-            alert('Erro ao conectar. Tente recarregar a página.');
+            document.getElementById('telaInicial').classList.remove('hidden');
         });
 
         function iniciarSincronizacao() {
@@ -629,24 +606,23 @@
             const el = document.getElementById('syncStatus');
             if (online && estado.configCarregada) {
                 el.className = 'sync-status online';
-                el.innerHTML = '<div class="sync-dot"></div><span>✅ Online - Tempo Real</span>';
+                el.innerHTML = '<div class="sync-dot"></div><span>Online - Tempo Real</span>';
             } else {
                 el.className = 'sync-status offline';
-                el.innerHTML = '<div class="sync-dot"></div><span>⏳ Carregando...</span>';
+                el.innerHTML = '<div class="sync-dot"></div><span>Carregando...</span>';
             }
         }
 
         function atualizarUI() {
             atualizarStats();
-            if (!document.getElementById('sectionVagas')?.classList.contains('hidden')) renderizarVagas();
-            if (!document.getElementById('sectionListaEspera')?.classList.contains('hidden')) renderizarListaEspera();
-            if (!document.getElementById('sectionMinhaVaga')?.classList.contains('hidden')) renderizarMinhaVaga();
+            if (!document.getElementById('sectionVagas').classList.contains('hidden')) renderizarVagas();
+            if (!document.getElementById('sectionListaEspera').classList.contains('hidden')) renderizarListaEspera();
+            if (!document.getElementById('sectionMinhaVaga').classList.contains('hidden')) renderizarMinhaVaga();
         }
 
-        // Exportar funções globais
         window.iniciarAcesso = function() {
             if (!estado.configCarregada) {
-                alert('⏳ Carregando configurações do galpão... Aguarde alguns segundos e tente novamente.');
+                alert('Carregando configuracoes do galpao... Aguarde alguns segundos e tente novamente.');
                 return;
             }
             
@@ -663,16 +639,12 @@
                         document.getElementById('telaInicial').classList.add('hidden');
                         atualizarStats();
                     } else {
-                        alert(`⚠️ Você está a ${Math.round(dist)}m do galpão.\n\nMáximo permitido: ${CONFIG.raioMaximo}m\n\nCoordenadas do galpão:\nLat: ${CONFIG.latGalpao}\nLon: ${CONFIG.lonGalpao}\n\nContate o administrador se estiver no local.`);
+                        alert('Voce esta a ' + Math.round(dist) + 'm do galpao.\n\nMaximo permitido: ' + CONFIG.raioMaximo + 'm');
                     }
                 },
                 (err) => {
                     document.getElementById('locationAlert').classList.add('hidden');
-                    let msg = 'Não foi possível obter localização.\n\n';
-                    if (err.code === 1) msg += 'Permita o acesso ao GPS no seu navegador.';
-                    else if (err.code === 2) msg += 'Sinal de GPS indisponível.';
-                    else if (err.code === 3) msg += 'Tempo esgotado. Tente novamente.';
-                    alert(msg);
+                    alert('Nao foi possivel obter localizacao. Verifique o GPS.');
                 },
                 { enableHighAccuracy: true, timeout: 15000 }
             );
@@ -681,17 +653,19 @@
         window.mostrarVagas = function() { esconderSections(); document.getElementById('sectionVagas').classList.remove('hidden'); renderizarVagas(); };
         window.mostrarListaEspera = function() { esconderSections(); document.getElementById('sectionListaEspera').classList.remove('hidden'); renderizarListaEspera(); };
         window.minhaVaga = function() { esconderSections(); document.getElementById('sectionMinhaVaga').classList.remove('hidden'); renderizarMinhaVaga(); };
+        
         function esconderSections() {
-            ['sectionVagas','sectionListaEspera','sectionMinhaVaga'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+            ['sectionVagas','sectionListaEspera','sectionMinhaVaga'].forEach(id => document.getElementById(id).classList.add('hidden'));
         }
+        
         window.voltarMenu = function() {
-            ['formCheckin','panelAdmin'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+            ['formCheckin','panelAdmin'].forEach(id => document.getElementById(id).classList.add('hidden'));
             esconderSections();
             document.getElementById('menuPrincipal').classList.remove('hidden');
         };
 
         function formatarDataHora(dataISO) {
-            if (!dataISO) return {  '--/--/--', hora: '--:--' };
+            if (!dataISO) return { data: '--/--/--', hora: '--:--' };
             const data = new Date(dataISO);
             const dia = String(data.getDate()).padStart(2, '0');
             const mes = String(data.getMonth() + 1).padStart(2, '0');
@@ -699,9 +673,9 @@
             const horas = String(data.getHours()).padStart(2, '0');
             const minutos = String(data.getMinutes()).padStart(2, '0');
             return {
-                 `${dia}/${mes}/${ano}`,
-                hora: `${horas}:${minutos}`,
-                completo: `${dia}/${mes}/${ano} às ${horas}:${minutos}`
+                data: dia + '/' + mes + '/' + ano,
+                hora: horas + ':' + minutos,
+                completo: dia + '/' + mes + '/' + ano + ' as ' + horas + ':' + minutos
             };
         }
 
@@ -722,29 +696,28 @@
                     
                     const dataHora = formatarDataHora(vaga.dataHora);
                     
-                    let html = `<div class="vaga-numero">V${vaga.numero}</div>`;
+                    let html = '<div class="vaga-numero">V' + vaga.numero + '</div>';
                     
                     if (vaga.foto) {
-                        html += `<img src="${vaga.foto}" class="vaga-foto" alt="Foto">`;
+                        html += '<img src="' + vaga.foto + '" class="vaga-foto" alt="Foto">';
                     }
                     
-                    html += `<div class="vaga-nome">${vaga.nome || 'Não informado'}</div>`;
-                    html += `<div class="vaga-placa">🚗 ${vaga.placa || '---'}</div>`;
-                    html += `<div class="vaga-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>`;
+                    html += '<div class="vaga-nome">' + (vaga.nome || 'Nao informado') + '</div>';
+                    html += '<div class="vaga-placa">' + (vaga.placa || '---') + '</div>';
+                    html += '<div class="vaga-data-hora">' + dataHora.data + ' - ' + dataHora.hora + '</div>';
                     
                     div.innerHTML = html;
-                    div.onclick = () => abrirModalVaga(vaga);
+                    div.onclick = function() { abrirModalVaga(vaga); };
                 } else {
                     div.classList.add('livre');
-                    div.innerHTML = `<div class="vaga-numero">V${vaga.numero}</div><div class="vaga-status">Livre</div><div style="margin-top:8px;font-size:0.75em;color:var(--success)">Toque para ocupar</div>`;
-                    div.onclick = () => selecionarVaga(vaga.numero);
+                    div.innerHTML = '<div class="vaga-numero">V' + vaga.numero + '</div><div class="vaga-status">Livre</div><div style="margin-top:8px;font-size:0.75em;color:var(--success)">Toque para ocupar</div>';
+                    div.onclick = function() { selecionarVaga(vaga.numero); };
                 }
                 grid.appendChild(div);
             });
-            document.getElementById('progressVagas').style.width = `${(ocupadas/CONFIG.totalVagas)*100}%`;
+            document.getElementById('progressVagas').style.width = (ocupadas/CONFIG.totalVagas)*100 + '%';
         }
 
-        // Modal de Vaga
         window.abrirModalVaga = function(vaga) {
             const modal = document.getElementById('modalVaga');
             const foto = document.getElementById('modalFoto');
@@ -752,7 +725,6 @@
             const placa = document.getElementById('modalPlaca');
             const horario = document.getElementById('modalHorario');
             const dataEl = document.getElementById('modalData');
-            const acoes = document.getElementById('modalAcoes');
             
             if (vaga.foto) {
                 foto.src = vaga.foto;
@@ -763,11 +735,10 @@
             
             const dataHora = formatarDataHora(vaga.dataHora);
             
-            nome.textContent = vaga.nome || 'Não informado';
-            placa.textContent = `🚗 ${vaga.placa || '---'}`;
-            horario.textContent = `🕐 Horário: ${dataHora.hora}`;
-            dataEl.textContent = `📅 Data: ${dataHora.data}`;
-            acoes.innerHTML = `<button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>`;
+            nome.textContent = vaga.nome || 'Nao informado';
+            placa.textContent = vaga.placa || '---';
+            horario.textContent = 'Horario: ' + dataHora.hora;
+            dataEl.textContent = 'Data: ' + dataHora.data;
             
             modal.classList.remove('hidden');
         };
@@ -779,23 +750,20 @@
         function renderizarListaEspera() {
             const container = document.getElementById('listaEsperaContent');
             if (estado.listaEspera.length === 0) {
-                container.innerHTML = '<p style="text-align:center;color:#666;padding:20px">Ninguém na lista de espera.</p>';
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:20px">Ninguem na lista de espera.</p>';
                 return;
             }
-            container.innerHTML = estado.listaEspera.map((item, idx) => {
+            container.innerHTML = estado.listaEspera.map(function(item, idx) {
                 const dataHora = formatarDataHora(item.dataHora);
-                return `
-                <div class="lista-espera"><div class="espera-item">
-                    ${item.foto ? `<img src="${item.foto}" class="espera-foto" alt="Foto">` : '<div style="width:50px;height:50px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-shrink:0">👤</div>'}
-                    <div style="display:flex;align-items:center;flex:1">
-                        <div class="espera-posicao">${item.posicao || idx+1}</div>
-                        <div class="espera-info">
-                            <div class="espera-nome">${item.nome || 'Não informado'}</div>
-                            <div class="espera-placa">🚗 ${item.placa || '---'}</div>
-                            <div class="espera-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>
-                        </div>
-                    </div>
-                </div></div>`;
+                return '<div class="lista-espera"><div class="espera-item">' +
+                    (item.foto ? '<img src="' + item.foto + '" class="espera-foto" alt="Foto">' : '<div style="width:50px;height:50px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-shrink:0">👤</div>') +
+                    '<div style="display:flex;align-items:center;flex:1">' +
+                    '<div class="espera-posicao">' + (item.posicao || idx+1) + '</div>' +
+                    '<div class="espera-info">' +
+                    '<div class="espera-nome">' + (item.nome || 'Nao informado') + '</div>' +
+                    '<div class="espera-placa">' + (item.placa || '---') + '</div>' +
+                    '<div class="espera-data-hora">' + dataHora.data + ' - ' + dataHora.hora + '</div>' +
+                    '</div></div></div></div>';
             }).join('');
         }
 
@@ -804,59 +772,48 @@
             const tel = localStorage.getItem('telefoneUsuario');
             
             if (!tel) { 
-                container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">🚗<br><br>Você não possui vaga ocupada no momento.</p>'; 
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga ocupada no momento.</p>'; 
                 return; 
             }
             
-            const minha = estado.vagas.find(v => v.telefone === tel && v.ocupada);
+            const minha = estado.vagas.find(function(v) { return v.telefone === tel && v.ocupada; });
             
             if (minha) {
                 const dataHora = formatarDataHora(minha.dataHora);
                 
-                let html = `
-                    <div class="minha-vaga-destaque">
-                        <div class="vaga-info">
-                            ${minha.foto ? `<img src="${minha.foto}" class="vaga-foto-grande" alt="Foto">` : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em;flex-shrink:0">👤</div>'}
-                            <div class="vaga-detalhes">
-                                <div class="vaga-numero-grande">Vaga ${minha.numero}</div>
-                                <div class="vaga-nome-grande">${minha.nome || 'Não informado'}</div>
-                                <div class="vaga-placa-grande">🚗 ${minha.placa}</div>
-                                <div class="vaga-data-hora">📅 ${dataHora.data} • 🕐 ${dataHora.hora}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="slider-label">🔓 Deslize para liberar a vaga</div>
-                    <div class="slider-container" id="sliderLiberar">
-                        <div class="slider-track" id="sliderTrack"></div>
-                        <div class="slider-text">➜ DESLIZE PARA LIBERAR</div>
-                        <div class="slider-handle" id="sliderHandle">🔓</div>
-                    </div>
-                    
-                    <div style="margin-top:16px;color:#888;font-size:0.85em;text-align:center">
-                        ⚠️ A liberação é imediata e não pode ser desfeita
-                    </div>
-                `;
+                let html = '<div class="minha-vaga-destaque"><div class="vaga-info">' +
+                    (minha.foto ? '<img src="' + minha.foto + '" class="vaga-foto-grande" alt="Foto">' : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em;flex-shrink:0">👤</div>') +
+                    '<div class="vaga-detalhes">' +
+                    '<div class="vaga-numero-grande">Vaga ' + minha.numero + '</div>' +
+                    '<div class="vaga-nome-grande">' + (minha.nome || 'Nao informado') + '</div>' +
+                    '<div class="vaga-placa-grande">' + (minha.placa || '---') + '</div>' +
+                    '<div class="vaga-data-hora">' + dataHora.data + ' - ' + dataHora.hora + '</div>' +
+                    '</div></div></div>' +
+                    '<div class="slider-label">Deslize para liberar a vaga</div>' +
+                    '<div class="slider-container" id="sliderLiberar">' +
+                    '<div class="slider-track" id="sliderTrack"></div>' +
+                    '<div class="slider-text">➜ DESLIZE PARA LIBERAR</div>' +
+                    '<div class="slider-handle" id="sliderHandle">🔓</div>' +
+                    '</div>' +
+                    '<div style="margin-top:16px;color:#888;font-size:0.85em;text-align:center">A liberacao e imediata e nao pode ser desfeita</div>';
                 
                 container.innerHTML = html;
                 
-                setTimeout(() => initSlider(minha.id, minha.numero), 200);
+                setTimeout(function() { initSlider(minha.id, minha.numero); }, 200);
             } else {
-                const pos = estado.listaEspera.findIndex(i => i.telefone === tel);
+                const pos = estado.listaEspera.findIndex(function(i) { return i.telefone === tel; });
                 if (pos >= 0) {
-                    container.innerHTML = `<div style="text-align:center;padding:40px">
-                        <div style="font-size:3em;margin-bottom:10px">⏳</div>
-                        <h3 style="color:var(--warning);margin-bottom:10px">Lista de Espera</h3>
-                        <p>Você está na posição <strong style="color:var(--primary);font-size:1.5em">${pos+1}</strong></p>
-                        <p style="color:#888;margin-top:10px">Aguarde a liberação de uma vaga</p>
-                    </div>`;
+                    container.innerHTML = '<div style="text-align:center;padding:40px">' +
+                        '<div style="font-size:3em;margin-bottom:10px">⏳</div>' +
+                        '<h3 style="color:var(--warning);margin-bottom:10px">Lista de Espera</h3>' +
+                        '<p>Voce esta na posicao <strong style="color:var(--primary);font-size:1.5em">' + (pos+1) + '</strong></p>' +
+                        '<p style="color:#888;margin-top:10px">Aguarde a liberacao de uma vaga</p></div>';
                 } else {
-                    container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Você não possui vaga ou posição na espera.</p>';
+                    container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga ou posicao na espera.</p>';
                 }
             }
         }
 
-        // Slider para liberar vaga
         function initSlider(vagaId, numero) {
             const slider = document.getElementById('sliderLiberar');
             const handle = document.getElementById('sliderHandle');
@@ -868,13 +825,13 @@
             let startX = 0;
             const maxWidth = slider.offsetWidth - handle.offsetWidth - 8;
             
-            const onStart = (e) => {
+            const onStart = function(e) {
                 isDragging = true;
                 startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 handle.style.transition = 'none';
             };
             
-            const onMove = (e) => {
+            const onMove = function(e) {
                 if (!isDragging) return;
                 e.preventDefault();
                 
@@ -884,11 +841,11 @@
                 if (deltaX < 0) deltaX = 0;
                 if (deltaX > maxWidth) deltaX = maxWidth;
                 
-                handle.style.transform = `translateX(${deltaX}px)`;
-                track.style.width = `${(deltaX / maxWidth) * 100}%`;
+                handle.style.transform = 'translateX(' + deltaX + 'px)';
+                track.style.width = (deltaX / maxWidth) * 100 + '%';
             };
             
-            const onEnd = () => {
+            const onEnd = function() {
                 if (!isDragging) return;
                 isDragging = false;
                 
@@ -899,11 +856,9 @@
                 if (currentX >= maxWidth - 20) {
                     handle.classList.add('completed');
                     track.style.background = 'linear-gradient(90deg, var(--success), #00E676)';
-                    document.getElementById('sliderLiberar').querySelector('.slider-text').textContent = '✅ VAGA LIBERADA!';
+                    document.getElementById('sliderLiberar').querySelector('.slider-text').textContent = 'VAGA LIBERADA!';
                     
-                    setTimeout(() => {
-                        liberarVaga(vagaId, numero);
-                    }, 500);
+                    setTimeout(function() { liberarVaga(vagaId, numero); }, 500);
                 } else {
                     handle.style.transition = 'transform 0.3s';
                     handle.style.transform = 'translateX(0px)';
@@ -923,25 +878,25 @@
 
         window.selecionarVaga = function(num) {
             if (!estado.localizacaoValida) { 
-                alert('Localização não verificada. Reinicie o acesso.'); 
+                alert('Localizacao nao verificada. Reinicie o acesso.'); 
                 return; 
             }
-            const vaga = estado.vagas.find(v => v.numero === num);
-            if (vaga.ocupada) { alert('Vaga já ocupada!'); return; }
+            const vaga = estado.vagas.find(function(v) { return v.numero === num; });
+            if (vaga.ocupada) { alert('Vaga ja ocupada!'); return; }
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('formCheckin').classList.remove('hidden');
             document.getElementById('vagaSelecionadaNum').textContent = num;
             
             document.getElementById('alertDistancia').style.display = 'flex';
-            document.getElementById('msgDistancia').textContent = `Você está a ${Math.round(estado.distanciaAtual)}m do galpão.`;
+            document.getElementById('msgDistancia').textContent = 'Voce esta a ' + Math.round(estado.distanciaAtual) + 'm do galpao.';
             
             iniciarCamera();
         };
 
         function iniciarCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-                .then(stream => { document.getElementById('videoElement').srcObject = stream; window.cameraStream = stream; })
-                .catch(() => alert('Não foi possível acessar a câmera.'));
+                .then(function(stream) { document.getElementById('videoElement').srcObject = stream; window.cameraStream = stream; })
+                .catch(function() { alert('Nao foi possivel acessar a camera.'); });
         }
 
         window.tirarFoto = function() {
@@ -973,30 +928,30 @@
             const foto = document.getElementById('fotoBase64').value;
             const numVaga = parseInt(document.getElementById('vagaSelecionadaNum').textContent);
             if (!nome || !telefone || !placa || !foto) { alert('Preencha todos os campos e tire a selfie.'); return; }
-            if (estado.vagas.some(v => v.telefone === telefone && v.ocupada)) { alert('Telefone já possui vaga!'); return; }
-            if (estado.vagas.some(v => v.placa === placa && v.ocupada)) { alert('Placa já possui vaga!'); return; }
-            const vaga = estado.vagas.find(v => v.numero === numVaga);
+            if (estado.vagas.some(function(v) { return v.telefone === telefone && v.ocupada; })) { alert('Telefone ja possui vaga!'); return; }
+            if (estado.vagas.some(function(v) { return v.placa === placa && v.ocupada; })) { alert('Placa ja possui vaga!'); return; }
+            const vaga = estado.vagas.find(function(v) { return v.numero === numVaga; });
             const dataHora = new Date().toISOString();
             try {
                 await updateDoc(doc(db, 'vagas', vaga.id), { 
                     ocupada: true, 
-                    nome, 
-                    telefone, 
-                    placa, 
-                    dataHora,
-                    foto 
+                    nome: nome, 
+                    telefone: telefone, 
+                    placa: placa, 
+                    dataHora: dataHora,
+                    foto: foto 
                 });
                 localStorage.setItem('telefoneUsuario', telefone);
-                if (window.cameraStream) window.cameraStream.getTracks().forEach(t => t.stop());
-                alert(`✅ Vaga ${numVaga} ocupada!\n📅 ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})}`);
-                ['inputNome','inputTelefone','inputPlaca'].forEach(id => document.getElementById(id).value = '');
+                if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
+                alert('Vaga ' + numVaga + ' ocupada!\n' + new Date().toLocaleDateString('pt-BR') + ' as ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
+                ['inputNome','inputTelefone','inputPlaca'].forEach(function(id) { document.getElementById(id).value = ''; });
                 window.novaFoto();
                 window.voltarMenu(); window.mostrarVagas();
             } catch (e) { console.error(e); alert('Erro ao ocupar vaga. Tente novamente.'); }
         };
 
         window.cancelarCheckin = function() {
-            if (window.cameraStream) window.cameraStream.getTracks().forEach(t => t.stop());
+            if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
             window.voltarMenu();
         };
 
@@ -1005,23 +960,20 @@
                 await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                 const tel = localStorage.getItem('telefoneUsuario');
                 const espera = await getDocs(query(collection(db, 'listaEspera')));
-                for (const d of espera.docs) if (d.data().telefone === tel) await updateDoc(d.ref, { ativo: false });
+                espera.forEach(function(d) { if (d.data().telefone === tel) updateDoc(d.ref, { ativo: false }); });
                 localStorage.removeItem('telefoneUsuario'); localStorage.removeItem('nomeUsuario');
-                alert(`✅ Vaga ${numero} liberada com sucesso!`);
+                alert('Vaga ' + numero + ' liberada com sucesso!');
                 window.voltarMenu();
             } catch (e) { console.error(e); alert('Erro ao liberar vaga.'); }
         };
 
-        // Gerar QR Code
         function gerarQRCode() {
             const qrImage = document.getElementById('qrCodeImage');
             const urlCodificada = encodeURIComponent(SISTEMA_URL);
-            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${urlCodificada}&color=000000&bgcolor=ffffff`;
+            qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + urlCodificada + '&color=000000&bgcolor=ffffff';
         }
 
         window.compartilharQRCode = async function() {
-            const qrImage = document.getElementById('qrCodeImage');
-            
             if (navigator.share) {
                 try {
                     await navigator.share({
@@ -1033,9 +985,8 @@
                     console.log('Compartilhamento cancelado');
                 }
             } else {
-                // Fallback: copiar link
                 await navigator.clipboard.writeText(SISTEMA_URL);
-                alert('📋 Link copiado!\n\n' + SISTEMA_URL + '\n\nCole no WhatsApp ou onde preferir!');
+                alert('Link copiado!\n\n' + SISTEMA_URL + '\n\nCole no WhatsApp ou onde preferir!');
             }
         };
 
@@ -1049,39 +1000,36 @@
             document.getElementById('configLon').value = CONFIG.lonGalpao;
             document.getElementById('configRaio').value = CONFIG.raioMaximo;
             
-            // Gerar QR Code
             gerarQRCode();
             
             try {
-                const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
-                document.getElementById('currentLocationDisplay').innerHTML = `<strong>Sua localização atual:</strong><br>Lat: ${pos.coords.latitude.toFixed(6)}<br>Lon: ${pos.coords.longitude.toFixed(6)}`;
-            } catch { document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localização atual:</strong><br>Não foi possível obter (permita GPS)'; }
+                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }); });
+                document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localizacao atual:</strong><br>Lat: ' + pos.coords.latitude.toFixed(6) + '<br>Lon: ' + pos.coords.longitude.toFixed(6);
+            } catch { document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localizacao atual:</strong><br>Nao foi possivel obter (permita GPS)'; }
             renderizarAdmin();
         };
 
         function renderizarAdmin() {
             const container = document.getElementById('adminContent');
-            const ocupadas = estado.vagas.filter(v => v.ocupada);
+            const ocupadas = estado.vagas.filter(function(v) { return v.ocupada; });
             if (ocupadas.length === 0) { container.innerHTML = '<p style="text-align:center;color:#666">Nenhuma vaga ocupada.</p>'; return; }
-            container.innerHTML = ocupadas.map(v => {
+            container.innerHTML = ocupadas.map(function(v) {
                 const dataHora = formatarDataHora(v.dataHora);
-                return `
-                <div class="admin-item">
-                    <div style="display:flex;align-items:center;gap:12px">
-                        ${v.foto ? `<img src="${v.foto}" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--primary)">` : ''}
-                        <div style="text-align:left">
-                            <strong style="color:var(--primary)">Vaga ${v.numero}</strong><br>
-                            <small>${v.nome || 'Não informado'}</small><br>
-                            <small style="color:#888">🚗 ${v.placa} | 📅 ${dataHora.data} ${dataHora.hora}</small>
-                        </div>
-                    </div>
-                    <button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga('${v.id}', ${v.numero})">Remover</button>
-                </div>`;
+                return '<div class="admin-item">' +
+                    '<div style="display:flex;align-items:center;gap:12px">' +
+                    (v.foto ? '<img src="' + v.foto + '" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--primary)">' : '') +
+                    '<div style="text-align:left">' +
+                    '<strong style="color:var(--primary)">Vaga ' + v.numero + '</strong><br>' +
+                    '<small>' + (v.nome || 'Nao informado') + '</small><br>' +
+                    '<small style="color:#888">' + (v.placa || '---') + ' | ' + dataHora.data + ' ' + dataHora.hora + '</small>' +
+                    '</div></div>' +
+                    '<button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga(\'' + v.id + '\', ' + v.numero + ')">Remover</button>' +
+                    '</div>';
             }).join('');
         }
 
         window.adminRemoverVaga = async function(vagaId, numero) {
-            if (!confirm(`Remover ocupação da vaga ${numero}?`)) return;
+            if (!confirm('Remover ocupacao da vaga ' + numero + '?')) return;
             try {
                 await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                 renderizarAdmin();
@@ -1112,24 +1060,24 @@
                 CONFIG.lonGalpao = lon;
                 CONFIG.raioMaximo = raio;
                 
-                alert(`✅ Configurações salvas no Firebase!\n\nGalpão: ${lat}, ${lon}\nRaio: ${raio}m\n\nTodos os motoristas agora usarão estas coordenadas!`);
+                alert('Configuracoes salvas no Firebase!\n\nGalpao: ' + lat + ', ' + lon + '\nRaio: ' + raio + 'm\n\nTodos os motoristas agora usarao estas coordenadas!');
             } catch (e) {
                 console.error(e);
-                alert('Erro ao salvar configurações. Verifique se a coleção "config" existe no Firebase.');
+                alert('Erro ao salvar configuracoes. Verifique se a colecao "config" existe no Firebase.');
             }
         };
 
         window.usarLocalizacaoAtual = async function() {
             try {
-                const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
+                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }); });
                 document.getElementById('configLat').value = pos.coords.latitude.toFixed(6);
                 document.getElementById('configLon').value = pos.coords.longitude.toFixed(6);
-                alert('📍 Localização preenchida! Clique em "Salvar no Firebase"');
-            } catch { alert('Não foi possível obter localização. Verifique o GPS.'); }
+                alert('Localizacao preenchida! Clique em "Salvar no Firebase"');
+            } catch { alert('Nao foi possivel obter localizacao. Verifique o GPS.'); }
         };
 
         function atualizarStats() {
-            const ocupadas = estado.vagas.filter(v => v.ocupada).length;
+            const ocupadas = estado.vagas.filter(function(v) { return v.ocupada; }).length;
             document.getElementById('vagasOcupadas').textContent = ocupadas;
             document.getElementById('vagasLivres').textContent = CONFIG.totalVagas - ocupadas;
             document.getElementById('listaEsperaCount').textContent = estado.listaEspera.length;
