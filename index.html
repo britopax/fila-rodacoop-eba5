@@ -54,6 +54,7 @@
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-info { background: #2196F3; color: white; }
+        .btn-warning { background: var(--warning); color: var(--dark); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .form-group { margin-bottom: 16px; }
         .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: #B0B0B0; font-size: 0.9em; }
@@ -329,12 +330,21 @@
             background: var(--success);
             margin-top: 12px;
         }
+        .limpeza-info {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.85em;
+        }
+        .limpeza-info strong { color: #2196F3; }
     </style>
 </head>
 <body>
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
-        <div>Carregando configurações do galpão...</div>
+        <div>Carregando configuracoes do galpao...</div>
     </div>
 
     <header class="header">
@@ -351,7 +361,7 @@
 
         <div id="locationAlert" class="alert alert-warning hidden">
             <span>📍</span>
-            <span>Verificando localização...</span>
+            <span>Verificando localizacao...</span>
         </div>
 
         <div class="stats">
@@ -374,13 +384,13 @@
             <div class="qr-container">
                 <div class="qr-icon">📱</div>
                 <p style="margin-bottom: 20px; color: #B0B0B0;">
-                    Escaneie o QR Code na entrada do galpão para acessar o sistema
+                    Escaneie o QR Code na entrada do galpao para acessar o sistema
                 </p>
                 <button class="btn btn-primary" onclick="iniciarAcesso()">
                     🎯 Acessar Sistema de Fila
                 </button>
                 <p style="margin-top: 16px; font-size: 0.85em; color: #666;">
-                    Ou clique acima se já estiver no local
+                    Ou clique acima se ja estiver no local
                 </p>
             </div>
         </div>
@@ -388,7 +398,7 @@
         <div id="menuPrincipal" class="hidden">
             <div class="card">
                 <div class="card-title">O que deseja fazer?</div>
-                <button class="btn btn-primary" onclick="mostrarVagas()">🚗 Ver Vagas Disponíveis</button>
+                <button class="btn btn-primary" onclick="mostrarVagas()">🚗 Ver Vagas Disponiveis</button>
                 <button class="btn btn-secondary" onclick="mostrarListaEspera()">📋 Ver Lista de Espera</button>
                 <button class="btn btn-secondary" onclick="minhaVaga()">💳 Minha Vaga</button>
             </div>
@@ -417,7 +427,7 @@
             <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
             <div class="alert alert-success" id="alertDistancia" style="display:none">
                 <span>✅</span>
-                <span id="msgDistancia">Você está no galpão!</span>
+                <span id="msgDistancia">Voce esta no galpao!</span>
             </div>
             <div class="form-group">
                 <label class="form-label">Nome Completo</label>
@@ -428,11 +438,11 @@
                 <input type="tel" id="inputTelefone" class="form-input" placeholder="(00) 00000-0000">
             </div>
             <div class="form-group">
-                <label class="form-label">Placa do Veículo</label>
+                <label class="form-label">Placa do Veiculo</label>
                 <input type="text" id="inputPlaca" class="form-input" placeholder="ABC-1234" style="text-transform: uppercase;">
             </div>
             <div class="form-group">
-                <label class="form-label">Selfie de Confirmação (Obrigatório)</label>
+                <label class="form-label">Selfie de Confirmacao (Obrigatorio)</label>
                 <div class="camera-container">
                     <video id="videoElement" autoplay playsinline></video>
                     <canvas id="photoElement" class="hidden"></canvas>
@@ -444,13 +454,28 @@
                 <input type="hidden" id="fotoBase64">
             </div>
             <div id="checkinActions">
-                <button class="btn btn-success" id="btnConfirmarVaga" onclick="confirmarVaga()" disabled>✅ Confirmar Ocupação da Vaga</button>
+                <button class="btn btn-success" id="btnConfirmarVaga" onclick="confirmarVaga()" disabled>✅ Confirmar Ocupacao da Vaga</button>
                 <button class="btn btn-secondary" onclick="cancelarCheckin()">Cancelar</button>
             </div>
         </div>
 
         <div id="panelAdmin" class="card admin-panel hidden">
             <div class="card-title">🔧 Painel Administrativo</div>
+            
+            <!-- Limpeza Automática Info -->
+            <div class="limpeza-info">
+                <strong>🕐 Limpeza Automática:</strong><br>
+                O sistema esvazia todas as vagas automaticamente todos os dias às 00:00h.
+                A última limpeza foi: <span id="ultimaLimpeza">Não registrada</span>
+            </div>
+            
+            <div class="config-section">
+                <h4>🗑️ Limpeza Manual de Emergência</h4>
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
+                    Use este botão para liberar TODAS as vagas imediatamente (útil em caso de erro ou fim de turno).
+                </p>
+                <button class="btn btn-warning" onclick="limparTodasVagas()">⚠️ LIBERAR TODAS AS VAGAS AGORA</button>
+            </div>
             
             <div class="config-section">
                 <h4>📱 QR Code para Motoristas</h4>
@@ -465,27 +490,27 @@
             </div>
             
             <div class="config-section">
-                <h4>📍 Configuração do Galpão</h4>
-                <div class="current-location" id="currentLocationDisplay"><strong>Sua localização atual:</strong><br>Carregando...</div>
+                <h4>📍 Configuracao do Galpao</h4>
+                <div class="current-location" id="currentLocationDisplay"><strong>Sua localizacao atual:</strong><br>Carregando...</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Latitude do Galpão</label>
+                        <label class="form-label">Latitude do Galpao</label>
                         <input type="number" step="any" id="configLat" class="form-input" placeholder="-23.550520">
                         <div class="help-text">Ex: -23.550520</div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Longitude do Galpão</label>
+                        <label class="form-label">Longitude do Galpao</label>
                         <input type="number" step="any" id="configLon" class="form-input" placeholder="-46.633308">
                         <div class="help-text">Ex: -46.633308</div>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Raio Máximo (metros)</label>
+                    <label class="form-label">Raio Maximo (metros)</label>
                     <input type="number" id="configRaio" class="form-input" placeholder="100">
-                    <div class="help-text">Distância máxima para permitir check-in</div>
+                    <div class="help-text">Distancia maxima para permitir check-in</div>
                 </div>
                 <button class="btn btn-success" onclick="salvarConfiguracoesFirebase()">💾 Salvar no Firebase</button>
-                <button class="btn btn-info" onclick="usarLocalizacaoAtual()">📍 Usar Minha Localização Atual</button>
+                <button class="btn btn-info" onclick="usarLocalizacaoAtual()">📍 Usar Minha Localizacao Atual</button>
             </div>
             <div class="config-section">
                 <h4>🚗 Vagas Ocupadas</h4>
@@ -515,7 +540,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -550,6 +575,73 @@
 
         const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
 
+        // Verificar e executar limpeza automática
+        async function verificarLimpezaAutomatica() {
+            const hoje = new Date();
+            const dataHoje = hoje.toISOString().split('T')[0]; // YYYY-MM-DD
+            
+            try {
+                const configDoc = await getDocs(collection(db, 'config'));
+                let ultimaLimpeza = null;
+                
+                if (!configDoc.empty) {
+                    configDoc.forEach(doc => {
+                        const data = doc.data();
+                        if (data.ultimaLimpeza) ultimaLimpeza = data.ultimaLimpeza;
+                    });
+                }
+                
+                // Se nunca limpou ou última limpeza foi antes de hoje, limpar
+                if (!ultimaLimpeza || ultimaLimpeza < dataHoje) {
+                    console.log('Executando limpeza automática diária...');
+                    await executarLimpezaAutomatica(dataHoje);
+                }
+                
+                return ultimaLimpeza || 'Nunca';
+            } catch (err) {
+                console.error('Erro ao verificar limpeza:', err);
+                return 'Erro ao verificar';
+            }
+        }
+
+        async function executarLimpezaAutomatica(dataHoje) {
+            try {
+                const batch = writeBatch(db);
+                const vagasRef = collection(db, 'vagas');
+                const snapshot = await getDocs(vagasRef);
+                
+                let count = 0;
+                snapshot.forEach(docRef => {
+                    batch.update(docRef.ref, {
+                        ocupada: false,
+                        nome: '',
+                        telefone: '',
+                        placa: '',
+                        dataHora: '',
+                        foto: ''
+                    });
+                    count++;
+                });
+                
+                await batch.commit();
+                
+                // Atualizar data da última limpeza
+                await setDoc(doc(db, 'config', 'geral'), {
+                    ultimaLimpeza: dataHoje,
+                    latGalpao: CONFIG.latGalpao,
+                    lonGalpao: CONFIG.lonGalpao,
+                    raioMaximo: CONFIG.raioMaximo,
+                    senhaAdmin: CONFIG.senhaAdmin
+                }, { merge: true });
+                
+                console.log('Limpeza automática executada! ' + count + ' vagas liberadas.');
+                alert('🕐 Limpeza automática executada!\n\n' + count + ' vagas foram liberadas.\n\nTodas as vagas estão disponíveis para um novo dia de trabalho!');
+                
+            } catch (err) {
+                console.error('Erro na limpeza automática:', err);
+            }
+        }
+
         async function carregarConfiguracoes() {
             try {
                 const configDoc = await getDocs(collection(db, 'config'));
@@ -567,9 +659,16 @@
                 console.error('Erro ao carregar config:', err);
             }
             estado.configCarregada = true;
+            
+            // Verificar limpeza automática antes de mostrar a tela
+            const ultimaLimpeza = await verificarLimpezaAutomatica();
+            
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('telaInicial').classList.remove('hidden');
             atualizarSyncStatus(true);
+            
+            // Salvar para exibição no admin
+            localStorage.setItem('ultimaLimpeza', ultimaLimpeza);
         }
 
         signInAnonymously(auth).then(() => {
@@ -665,7 +764,7 @@
         };
 
         function formatarDataHora(dataISO) {
-            if (!dataISO) return { data: '--/--/--', hora: '--:--' };
+            if (!dataISO || dataISO === '') return { data: '--/--/--', hora: '--:--' };
             const data = new Date(dataISO);
             const dia = String(data.getDate()).padStart(2, '0');
             const mes = String(data.getMonth() + 1).padStart(2, '0');
@@ -967,6 +1066,58 @@
             } catch (e) { console.error(e); alert('Erro ao liberar vaga.'); }
         };
 
+        // Limpar todas as vagas (Admin)
+        window.limparTodasVagas = async function() {
+            if (!confirm('⚠️ ATENÇÃO! ⚠️\n\nTem certeza que deseja LIBERAR TODAS AS VAGAS?\n\nIsso irá remover todos os motoristas das vagas e da lista de espera.\n\nEsta ação não pode ser desfeita!')) {
+                return;
+            }
+            
+            try {
+                const batch = writeBatch(db);
+                const vagasRef = collection(db, 'vagas');
+                const snapshot = await getDocs(vagasRef);
+                
+                let count = 0;
+                snapshot.forEach(docRef => {
+                    batch.update(docRef.ref, {
+                        ocupada: false,
+                        nome: '',
+                        telefone: '',
+                        placa: '',
+                        dataHora: '',
+                        foto: ''
+                    });
+                    count++;
+                });
+                
+                // Também limpar lista de espera
+                const esperaRef = collection(db, 'listaEspera');
+                const esperaSnapshot = await getDocs(esperaRef);
+                esperaSnapshot.forEach(docRef => {
+                    batch.delete(docRef.ref);
+                });
+                
+                await batch.commit();
+                
+                // Atualizar data da limpeza
+                const hoje = new Date().toISOString().split('T')[0];
+                await setDoc(doc(db, 'config', 'geral'), {
+                    ultimaLimpeza: hoje,
+                    latGalpao: CONFIG.latGalpao,
+                    lonGalpao: CONFIG.lonGalpao,
+                    raioMaximo: CONFIG.raioMaximo,
+                    senhaAdmin: CONFIG.senhaAdmin
+                }, { merge: true });
+                
+                alert('✅ TODAS AS VAGAS FORAM LIBERADAS!\n\n' + count + ' vagas liberadas.\n\nO sistema está pronto para um novo turno!');
+                renderizarAdmin();
+                
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao liberar vagas. Tente novamente.');
+            }
+        };
+
         function gerarQRCode() {
             const qrImage = document.getElementById('qrCodeImage');
             const urlCodificada = encodeURIComponent(SISTEMA_URL);
@@ -999,6 +1150,10 @@
             document.getElementById('configLat').value = CONFIG.latGalpao;
             document.getElementById('configLon').value = CONFIG.lonGalpao;
             document.getElementById('configRaio').value = CONFIG.raioMaximo;
+            
+            // Exibir última limpeza
+            const ultimaLimpeza = localStorage.getItem('ultimaLimpeza') || 'Não registrada';
+            document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza !== 'Nunca' ? ultimaLimpeza : 'Não registrada';
             
             gerarQRCode();
             
