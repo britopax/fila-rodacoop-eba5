@@ -339,6 +339,15 @@
             font-size: 0.85em;
         }
         .limpeza-info strong { color: #2196F3; }
+        .seguranca-info {
+            background: rgba(0, 200, 83, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.85em;
+        }
+        .seguranca-info strong { color: var(--success); }
     </style>
 </head>
 <body>
@@ -425,6 +434,13 @@
 
         <div id="formCheckin" class="card hidden">
             <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
+            
+            <!-- Alerta de Segurança do Dispositivo -->
+            <div class="seguranca-info">
+                <strong>🔒 Segurança do Dispositivo:</strong><br>
+                Este dispositivo está sendo registrado para sua segurança. Cada dispositivo só pode ocupar 1 vaga.
+            </div>
+            
             <div class="alert alert-success" id="alertDistancia" style="display:none">
                 <span>✅</span>
                 <span id="msgDistancia">Voce esta no galpao!</span>
@@ -466,7 +482,7 @@
             <div class="limpeza-info">
                 <strong>🕐 Limpeza Automática:</strong><br>
                 O sistema esvazia todas as vagas automaticamente todos os dias às 00:00h.
-                A última limpeza foi: <span id="ultimaLimpeza">Não registrada</span>
+                A última limpeza foi: <span id="ultimaLimpeza">Nao registrada</span>
             </div>
             
             <div class="config-section">
@@ -487,6 +503,15 @@
                 <p style="color: #888; font-size: 0.85em; text-align: center;">
                     🔗 Link: https://britopax.github.io/fila-rodacoop-eba5/
                 </p>
+            </div>
+            
+            <div class="config-section">
+                <h4>🔒 Dispositivos Registrados</h4>
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
+                    Veja quais dispositivos estão ocupando vagas.
+                </p>
+                <button class="btn btn-info" onclick="mostrarDispositivos()">📱 Ver Dispositivos</button>
+                <div id="dispositivosContent" style="margin-top: 12px;"></div>
             </div>
             
             <div class="config-section">
@@ -540,7 +565,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, writeBatch, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -570,15 +595,116 @@
             localizacaoValida: false, 
             fotoCapturada: false, 
             configCarregada: false,
-            distanciaAtual: 0
+            distanciaAtual: 0,
+            deviceId: ''
         };
 
         const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
 
+        // Gerar ID único do dispositivo (Fingerprinting)
+        function gerarDeviceId() {
+            const ua = navigator.userAgent;
+            const screen = window.screen.width + 'x' + window.screen.height;
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const language = navigator.language;
+            const platform = navigator.platform;
+            const cookieEnabled = navigator.cookieEnabled;
+            
+            const fingerprint = ua + screen + timezone + language + platform + cookieEnabled;
+            
+            // Hash simples (base64)
+            return btoa(fingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+        }
+
+        // Verificar se dispositivo já tem vaga
+        async function verificarDispositivo(deviceId, telefone) {
+            try {
+                const dispositivosRef = collection(db, 'dispositivos');
+                const deviceDoc = await getDocs(query(dispositivosRef, where('deviceId', '==', deviceId)));
+                
+                if (!deviceDoc.empty) {
+                    const doc = deviceDoc.docs[0];
+                    const data = doc.data();
+                    
+                    // Se o dispositivo já está registrado com OUTRO telefone
+                    if (data.telefone !== telefone) {
+                        return {
+                            valido: false,
+                            mensagem: '⚠️ Este dispositivo já está sendo usado por outro motorista!\n\nTelefone registrado: ' + data.telefone + '\n\nCada dispositivo só pode ocupar 1 vaga.\n\nUse o celular do colega para fazer o check-in dele.'
+                        };
+                    }
+                    
+                    // Se é o mesmo telefone, verificar se já tem vaga
+                    if (data.ocupado) {
+                        return {
+                            valido: false,
+                            mensagem: '⚠️ Este dispositivo já possui uma vaga ocupada!\n\nTelefone: ' + data.telefone + '\n\nLibere a vaga atual antes de ocupar outra.'
+                        };
+                    }
+                }
+                
+                return { valido: true };
+            } catch (err) {
+                console.error('Erro ao verificar dispositivo:', err);
+                return { valido: true }; // Em caso de erro, permite (não bloquear por erro técnico)
+            }
+        }
+
+        // Registrar dispositivo
+        async function registrarDispositivo(deviceId, telefone, nome, placa) {
+            try {
+                const dispositivosRef = collection(db, 'dispositivos');
+                const q = query(dispositivosRef, where('deviceId', '==', deviceId));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    // Atualizar existente
+                    await updateDoc(snapshot.docs[0].ref, {
+                        telefone: telefone,
+                        nome: nome,
+                        placa: placa,
+                        ocupado: true,
+                        ultimaAcesso: new Date().toISOString()
+                    });
+                } else {
+                    // Criar novo
+                    await setDoc(doc(dispositivosRef, deviceId), {
+                        deviceId: deviceId,
+                        telefone: telefone,
+                        nome: nome,
+                        placa: placa,
+                        ocupado: true,
+                        criadoEm: new Date().toISOString(),
+                        ultimaAcesso: new Date().toISOString()
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao registrar dispositivo:', err);
+            }
+        }
+
+        // Liberar dispositivo
+        async function liberarDispositivo(deviceId) {
+            try {
+                const dispositivosRef = collection(db, 'dispositivos');
+                const q = query(dispositivosRef, where('deviceId', '==', deviceId));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    await updateDoc(snapshot.docs[0].ref, {
+                        ocupado: false,
+                        ultimaAcesso: new Date().toISOString()
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao liberar dispositivo:', err);
+            }
+        }
+
         // Verificar e executar limpeza automática
         async function verificarLimpezaAutomatica() {
             const hoje = new Date();
-            const dataHoje = hoje.toISOString().split('T')[0]; // YYYY-MM-DD
+            const dataHoje = hoje.toISOString().split('T')[0];
             
             try {
                 const configDoc = await getDocs(collection(db, 'config'));
@@ -591,9 +717,8 @@
                     });
                 }
                 
-                // Se nunca limpou ou última limpeza foi antes de hoje, limpar
                 if (!ultimaLimpeza || ultimaLimpeza < dataHoje) {
-                    console.log('Executando limpeza automática diária...');
+                    console.log('Executando limpeza automatica diaria...');
                     await executarLimpezaAutomatica(dataHoje);
                 }
                 
@@ -623,9 +748,18 @@
                     count++;
                 });
                 
+                // Limpar dispositivos também
+                const dispositivosRef = collection(db, 'dispositivos');
+                const dispSnapshot = await getDocs(dispositivosRef);
+                dispSnapshot.forEach(docRef => {
+                    batch.update(docRef.ref, {
+                        ocupado: false,
+                        ultimaAcesso: new Date().toISOString()
+                    });
+                });
+                
                 await batch.commit();
                 
-                // Atualizar data da última limpeza
                 await setDoc(doc(db, 'config', 'geral'), {
                     ultimaLimpeza: dataHoje,
                     latGalpao: CONFIG.latGalpao,
@@ -634,11 +768,10 @@
                     senhaAdmin: CONFIG.senhaAdmin
                 }, { merge: true });
                 
-                console.log('Limpeza automática executada! ' + count + ' vagas liberadas.');
-                alert('🕐 Limpeza automática executada!\n\n' + count + ' vagas foram liberadas.\n\nTodas as vagas estão disponíveis para um novo dia de trabalho!');
+                console.log('Limpeza automatica executada! ' + count + ' vagas liberadas.');
                 
             } catch (err) {
-                console.error('Erro na limpeza automática:', err);
+                console.error('Erro na limpeza automatica:', err);
             }
         }
 
@@ -658,16 +791,19 @@
             } catch (err) {
                 console.error('Erro ao carregar config:', err);
             }
+            
+            // Gerar ID do dispositivo
+            estado.deviceId = gerarDeviceId();
+            console.log('Device ID:', estado.deviceId);
+            
             estado.configCarregada = true;
             
-            // Verificar limpeza automática antes de mostrar a tela
             const ultimaLimpeza = await verificarLimpezaAutomatica();
             
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('telaInicial').classList.remove('hidden');
             atualizarSyncStatus(true);
             
-            // Salvar para exibição no admin
             localStorage.setItem('ultimaLimpeza', ultimaLimpeza);
         }
 
@@ -1026,11 +1162,31 @@
             const placa = document.getElementById('inputPlaca').value.toUpperCase().trim();
             const foto = document.getElementById('fotoBase64').value;
             const numVaga = parseInt(document.getElementById('vagaSelecionadaNum').textContent);
-            if (!nome || !telefone || !placa || !foto) { alert('Preencha todos os campos e tire a selfie.'); return; }
-            if (estado.vagas.some(function(v) { return v.telefone === telefone && v.ocupada; })) { alert('Telefone ja possui vaga!'); return; }
-            if (estado.vagas.some(function(v) { return v.placa === placa && v.ocupada; })) { alert('Placa ja possui vaga!'); return; }
+            
+            if (!nome || !telefone || !placa || !foto) { 
+                alert('Preencha todos os campos e tire a selfie.'); 
+                return; 
+            }
+            
+            // VERIFICAR DISPOSITIVO (Fingerprinting)
+            const verificacao = await verificarDispositivo(estado.deviceId, telefone);
+            if (!verificacao.valido) {
+                alert(verificacao.mensagem);
+                return;
+            }
+            
+            if (estado.vagas.some(function(v) { return v.telefone === telefone && v.ocupada; })) { 
+                alert('Telefone ja possui vaga!'); 
+                return; 
+            }
+            if (estado.vagas.some(function(v) { return v.placa === placa && v.ocupada; })) { 
+                alert('Placa ja possui vaga!'); 
+                return; 
+            }
+            
             const vaga = estado.vagas.find(function(v) { return v.numero === numVaga; });
             const dataHora = new Date().toISOString();
+            
             try {
                 await updateDoc(doc(db, 'vagas', vaga.id), { 
                     ocupada: true, 
@@ -1040,13 +1196,20 @@
                     dataHora: dataHora,
                     foto: foto 
                 });
+                
+                // Registrar dispositivo
+                await registrarDispositivo(estado.deviceId, telefone, nome, placa);
+                
                 localStorage.setItem('telefoneUsuario', telefone);
                 if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
                 alert('Vaga ' + numVaga + ' ocupada!\n' + new Date().toLocaleDateString('pt-BR') + ' as ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
                 ['inputNome','inputTelefone','inputPlaca'].forEach(function(id) { document.getElementById(id).value = ''; });
                 window.novaFoto();
                 window.voltarMenu(); window.mostrarVagas();
-            } catch (e) { console.error(e); alert('Erro ao ocupar vaga. Tente novamente.'); }
+            } catch (e) { 
+                console.error(e); 
+                alert('Erro ao ocupar vaga. Tente novamente.'); 
+            }
         };
 
         window.cancelarCheckin = function() {
@@ -1057,18 +1220,25 @@
         window.liberarVaga = async function(vagaId, numero) {
             try {
                 await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
+                
+                // Liberar dispositivo
+                await liberarDispositivo(estado.deviceId);
+                
                 const tel = localStorage.getItem('telefoneUsuario');
                 const espera = await getDocs(query(collection(db, 'listaEspera')));
                 espera.forEach(function(d) { if (d.data().telefone === tel) updateDoc(d.ref, { ativo: false }); });
                 localStorage.removeItem('telefoneUsuario'); localStorage.removeItem('nomeUsuario');
                 alert('Vaga ' + numero + ' liberada com sucesso!');
                 window.voltarMenu();
-            } catch (e) { console.error(e); alert('Erro ao liberar vaga.'); }
+            } catch (e) { 
+                console.error(e); 
+                alert('Erro ao liberar vaga.'); 
+            }
         };
 
         // Limpar todas as vagas (Admin)
         window.limparTodasVagas = async function() {
-            if (!confirm('⚠️ ATENÇÃO! ⚠️\n\nTem certeza que deseja LIBERAR TODAS AS VAGAS?\n\nIsso irá remover todos os motoristas das vagas e da lista de espera.\n\nEsta ação não pode ser desfeita!')) {
+            if (!confirm('⚠️ ATENCAO! ⚠️\n\nTem certeza que deseja LIBERAR TODAS AS VAGAS?\n\nIsso ira remover todos os motoristas das vagas e da lista de espera.\n\nEsta acao nao pode ser desfeita!')) {
                 return;
             }
             
@@ -1090,16 +1260,24 @@
                     count++;
                 });
                 
-                // Também limpar lista de espera
                 const esperaRef = collection(db, 'listaEspera');
                 const esperaSnapshot = await getDocs(esperaRef);
                 esperaSnapshot.forEach(docRef => {
                     batch.delete(docRef.ref);
                 });
                 
+                // Limpar dispositivos também
+                const dispositivosRef = collection(db, 'dispositivos');
+                const dispSnapshot = await getDocs(dispositivosRef);
+                dispSnapshot.forEach(docRef => {
+                    batch.update(docRef.ref, {
+                        ocupado: false,
+                        ultimaAcesso: new Date().toISOString()
+                    });
+                });
+                
                 await batch.commit();
                 
-                // Atualizar data da limpeza
                 const hoje = new Date().toISOString().split('T')[0];
                 await setDoc(doc(db, 'config', 'geral'), {
                     ultimaLimpeza: hoje,
@@ -1109,12 +1287,45 @@
                     senhaAdmin: CONFIG.senhaAdmin
                 }, { merge: true });
                 
-                alert('✅ TODAS AS VAGAS FORAM LIBERADAS!\n\n' + count + ' vagas liberadas.\n\nO sistema está pronto para um novo turno!');
+                alert('✅ TODAS AS VAGAS FORAM LIBERADAS!\n\n' + count + ' vagas liberadas.\n\nO sistema esta pronto para um novo turno!');
                 renderizarAdmin();
                 
             } catch (e) {
                 console.error(e);
                 alert('Erro ao liberar vagas. Tente novamente.');
+            }
+        };
+
+        // Mostrar dispositivos registrados (Admin)
+        window.mostrarDispositivos = async function() {
+            const container = document.getElementById('dispositivosContent');
+            container.innerHTML = '<p style="text-align:center;color:#888">Carregando...</p>';
+            
+            try {
+                const snapshot = await getDocs(collection(db, 'dispositivos'));
+                if (snapshot.empty) {
+                    container.innerHTML = '<p style="text-align:center;color:#666">Nenhum dispositivo registrado.</p>';
+                    return;
+                }
+                
+                let html = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    html += '<div class="admin-item">' +
+                        '<div style="text-align:left">' +
+                        '<small style="color:#888">' + data.deviceId.substring(0, 16) + '...</small><br>' +
+                        '<strong>' + (data.nome || 'Nao informado') + '</strong><br>' +
+                        '<small>' + (data.telefone || '---') + '</small><br>' +
+                        '<small style="color:' + (data.ocupado ? 'var(--danger)' : 'var(--success)') + '">' + 
+                        (data.ocupado ? '🔴 Ocupado' : '🟢 Livre') + '</small>' +
+                        '</div>' +
+                        '</div>';
+                });
+                
+                container.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="text-align:center;color:var(--danger)">Erro ao carregar dispositivos.</p>';
             }
         };
 
@@ -1151,9 +1362,8 @@
             document.getElementById('configLon').value = CONFIG.lonGalpao;
             document.getElementById('configRaio').value = CONFIG.raioMaximo;
             
-            // Exibir última limpeza
-            const ultimaLimpeza = localStorage.getItem('ultimaLimpeza') || 'Não registrada';
-            document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza !== 'Nunca' ? ultimaLimpeza : 'Não registrada';
+            const ultimaLimpeza = localStorage.getItem('ultimaLimpeza') || 'Nao registrada';
+            document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza !== 'Nunca' ? ultimaLimpeza : 'Nao registrada';
             
             gerarQRCode();
             
