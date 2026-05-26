@@ -435,10 +435,9 @@
         <div id="formCheckin" class="card hidden">
             <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
             
-            <!-- Alerta de Segurança do Dispositivo -->
             <div class="seguranca-info">
-                <strong>🔒 Segurança do Dispositivo:</strong><br>
-                Este dispositivo está sendo registrado para sua segurança. Cada dispositivo só pode ocupar 1 vaga.
+                <strong>🔒 Segurança:</strong><br>
+                Selfie obrigatoria para confirmar sua presenca no local.
             </div>
             
             <div class="alert alert-success" id="alertDistancia" style="display:none">
@@ -478,70 +477,59 @@
         <div id="panelAdmin" class="card admin-panel hidden">
             <div class="card-title">🔧 Painel Administrativo</div>
             
-            <!-- Limpeza Automática Info -->
             <div class="limpeza-info">
                 <strong>🕐 Limpeza Automática:</strong><br>
                 O sistema esvazia todas as vagas automaticamente todos os dias às 00:00h.
-                A última limpeza foi: <span id="ultimaLimpeza">Nao registrada</span>
+                Última limpeza: <span id="ultimaLimpeza">Nao registrada</span>
             </div>
             
             <div class="config-section">
-                <h4>🗑️ Limpeza Manual de Emergência</h4>
+                <h4>🗑️ Limpeza Manual</h4>
+                <button class="btn btn-warning" onclick="limparTodasVagas()">⚠️ LIBERAR TODAS AS VAGAS</button>
+            </div>
+
+            <div class="config-section">
+                <h4>🔓 Resetar Dispositivos</h4>
                 <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
-                    Use este botão para liberar TODAS as vagas imediatamente (útil em caso de erro ou fim de turno).
+                    Limpa todos os registros de dispositivos (útil se motoristas estiverem sendo bloqueados indevidamente).
                 </p>
-                <button class="btn btn-warning" onclick="limparTodasVagas()">⚠️ LIBERAR TODAS AS VAGAS AGORA</button>
+                <button class="btn btn-info" onclick="resetarDispositivos()">🔄 Resetar Todos Dispositivos</button>
             </div>
             
             <div class="config-section">
                 <h4>📱 QR Code para Motoristas</h4>
                 <div class="qr-admin-container">
-                    <img id="qrCodeImage" src="" alt="QR Code de Acesso">
-                    <p>Mostre este QR Code para os motoristas escanearem</p>
-                    <button class="btn btn-compartilhar" onclick="compartilharQRCode()">📤 Compartilhar QR Code</button>
+                    <img id="qrCodeImage" src="" alt="QR Code">
+                    <p>Mostre este QR Code para os motoristas</p>
+                    <button class="btn btn-compartilhar" onclick="compartilharQRCode()">📤 Compartilhar</button>
                 </div>
-                <p style="color: #888; font-size: 0.85em; text-align: center;">
-                    🔗 Link: https://britopax.github.io/fila-rodacoop-eba5/
-                </p>
-            </div>
-            
-            <div class="config-section">
-                <h4>🔒 Dispositivos Registrados</h4>
-                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
-                    Veja quais dispositivos estão ocupando vagas.
-                </p>
-                <button class="btn btn-info" onclick="mostrarDispositivos()">📱 Ver Dispositivos</button>
-                <div id="dispositivosContent" style="margin-top: 12px;"></div>
             </div>
             
             <div class="config-section">
                 <h4>📍 Configuracao do Galpao</h4>
-                <div class="current-location" id="currentLocationDisplay"><strong>Sua localizacao atual:</strong><br>Carregando...</div>
+                <div class="current-location" id="currentLocationDisplay"><strong>Sua localizacao:</strong><br>Carregando...</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Latitude do Galpao</label>
+                        <label class="form-label">Latitude</label>
                         <input type="number" step="any" id="configLat" class="form-input" placeholder="-23.550520">
-                        <div class="help-text">Ex: -23.550520</div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Longitude do Galpao</label>
+                        <label class="form-label">Longitude</label>
                         <input type="number" step="any" id="configLon" class="form-input" placeholder="-46.633308">
-                        <div class="help-text">Ex: -46.633308</div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Raio Maximo (metros)</label>
                     <input type="number" id="configRaio" class="form-input" placeholder="100">
-                    <div class="help-text">Distancia maxima para permitir check-in</div>
                 </div>
-                <button class="btn btn-success" onclick="salvarConfiguracoesFirebase()">💾 Salvar no Firebase</button>
-                <button class="btn btn-info" onclick="usarLocalizacaoAtual()">📍 Usar Minha Localizacao Atual</button>
+                <button class="btn btn-success" onclick="salvarConfiguracoesFirebase()">💾 Salvar</button>
+                <button class="btn btn-info" onclick="usarLocalizacaoAtual()">📍 Usar Minha Localizacao</button>
             </div>
             <div class="config-section">
                 <h4>🚗 Vagas Ocupadas</h4>
                 <div id="adminContent"></div>
             </div>
-            <button class="btn btn-secondary" onclick="fecharAdmin()">Fechar Painel Admin</button>
+            <button class="btn btn-secondary" onclick="fecharAdmin()">Fechar</button>
         </div>
 
         <div class="footer">
@@ -552,14 +540,12 @@
 
     <div id="modalVaga" class="modal-overlay hidden">
         <div class="modal-content">
-            <img id="modalFoto" class="modal-foto" src="" alt="Foto do Motorista">
+            <img id="modalFoto" class="modal-foto" src="" alt="Foto">
             <div id="modalNome" class="modal-nome"></div>
             <div id="modalPlaca" class="modal-placa"></div>
             <div id="modalHorario" class="modal-horario"></div>
             <div id="modalData" class="modal-data"></div>
-            <div id="modalAcoes">
-                <button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>
-            </div>
+            <button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>
         </div>
     </div>
 
@@ -595,113 +581,12 @@
             localizacaoValida: false, 
             fotoCapturada: false, 
             configCarregada: false,
-            distanciaAtual: 0,
-            deviceId: ''
+            distanciaAtual: 0
         };
 
         const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
 
-        // Gerar ID único do dispositivo (Fingerprinting)
-        function gerarDeviceId() {
-            const ua = navigator.userAgent;
-            const screen = window.screen.width + 'x' + window.screen.height;
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const language = navigator.language;
-            const platform = navigator.platform;
-            const cookieEnabled = navigator.cookieEnabled;
-            
-            const fingerprint = ua + screen + timezone + language + platform + cookieEnabled;
-            
-            // Hash simples (base64)
-            return btoa(fingerprint).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
-        }
-
-        // Verificar se dispositivo já tem vaga
-        async function verificarDispositivo(deviceId, telefone) {
-            try {
-                const dispositivosRef = collection(db, 'dispositivos');
-                const deviceDoc = await getDocs(query(dispositivosRef, where('deviceId', '==', deviceId)));
-                
-                if (!deviceDoc.empty) {
-                    const doc = deviceDoc.docs[0];
-                    const data = doc.data();
-                    
-                    // Se o dispositivo já está registrado com OUTRO telefone
-                    if (data.telefone !== telefone) {
-                        return {
-                            valido: false,
-                            mensagem: '⚠️ Este dispositivo já está sendo usado por outro motorista!\n\nTelefone registrado: ' + data.telefone + '\n\nCada dispositivo só pode ocupar 1 vaga.\n\nUse o celular do colega para fazer o check-in dele.'
-                        };
-                    }
-                    
-                    // Se é o mesmo telefone, verificar se já tem vaga
-                    if (data.ocupado) {
-                        return {
-                            valido: false,
-                            mensagem: '⚠️ Este dispositivo já possui uma vaga ocupada!\n\nTelefone: ' + data.telefone + '\n\nLibere a vaga atual antes de ocupar outra.'
-                        };
-                    }
-                }
-                
-                return { valido: true };
-            } catch (err) {
-                console.error('Erro ao verificar dispositivo:', err);
-                return { valido: true }; // Em caso de erro, permite (não bloquear por erro técnico)
-            }
-        }
-
-        // Registrar dispositivo
-        async function registrarDispositivo(deviceId, telefone, nome, placa) {
-            try {
-                const dispositivosRef = collection(db, 'dispositivos');
-                const q = query(dispositivosRef, where('deviceId', '==', deviceId));
-                const snapshot = await getDocs(q);
-                
-                if (!snapshot.empty) {
-                    // Atualizar existente
-                    await updateDoc(snapshot.docs[0].ref, {
-                        telefone: telefone,
-                        nome: nome,
-                        placa: placa,
-                        ocupado: true,
-                        ultimaAcesso: new Date().toISOString()
-                    });
-                } else {
-                    // Criar novo
-                    await setDoc(doc(dispositivosRef, deviceId), {
-                        deviceId: deviceId,
-                        telefone: telefone,
-                        nome: nome,
-                        placa: placa,
-                        ocupado: true,
-                        criadoEm: new Date().toISOString(),
-                        ultimaAcesso: new Date().toISOString()
-                    });
-                }
-            } catch (err) {
-                console.error('Erro ao registrar dispositivo:', err);
-            }
-        }
-
-        // Liberar dispositivo
-        async function liberarDispositivo(deviceId) {
-            try {
-                const dispositivosRef = collection(db, 'dispositivos');
-                const q = query(dispositivosRef, where('deviceId', '==', deviceId));
-                const snapshot = await getDocs(q);
-                
-                if (!snapshot.empty) {
-                    await updateDoc(snapshot.docs[0].ref, {
-                        ocupado: false,
-                        ultimaAcesso: new Date().toISOString()
-                    });
-                }
-            } catch (err) {
-                console.error('Erro ao liberar dispositivo:', err);
-            }
-        }
-
-        // Verificar e executar limpeza automática
+        // Verificar limpeza automática
         async function verificarLimpezaAutomatica() {
             const hoje = new Date();
             const dataHoje = hoje.toISOString().split('T')[0];
@@ -718,14 +603,14 @@
                 }
                 
                 if (!ultimaLimpeza || ultimaLimpeza < dataHoje) {
-                    console.log('Executando limpeza automatica diaria...');
+                    console.log('Executando limpeza automatica...');
                     await executarLimpezaAutomatica(dataHoje);
                 }
                 
                 return ultimaLimpeza || 'Nunca';
             } catch (err) {
                 console.error('Erro ao verificar limpeza:', err);
-                return 'Erro ao verificar';
+                return 'Erro';
             }
         }
 
@@ -735,7 +620,6 @@
                 const vagasRef = collection(db, 'vagas');
                 const snapshot = await getDocs(vagasRef);
                 
-                let count = 0;
                 snapshot.forEach(docRef => {
                     batch.update(docRef.ref, {
                         ocupada: false,
@@ -744,17 +628,6 @@
                         placa: '',
                         dataHora: '',
                         foto: ''
-                    });
-                    count++;
-                });
-                
-                // Limpar dispositivos também
-                const dispositivosRef = collection(db, 'dispositivos');
-                const dispSnapshot = await getDocs(dispositivosRef);
-                dispSnapshot.forEach(docRef => {
-                    batch.update(docRef.ref, {
-                        ocupado: false,
-                        ultimaAcesso: new Date().toISOString()
                     });
                 });
                 
@@ -768,10 +641,9 @@
                     senhaAdmin: CONFIG.senhaAdmin
                 }, { merge: true });
                 
-                console.log('Limpeza automatica executada! ' + count + ' vagas liberadas.');
-                
+                console.log('Limpeza executada!');
             } catch (err) {
-                console.error('Erro na limpeza automatica:', err);
+                console.error('Erro na limpeza:', err);
             }
         }
 
@@ -786,18 +658,12 @@
                         if (data.raioMaximo) CONFIG.raioMaximo = data.raioMaximo;
                         if (data.senhaAdmin) CONFIG.senhaAdmin = data.senhaAdmin;
                     });
-                    console.log('Configuracoes carregadas:', CONFIG);
                 }
             } catch (err) {
                 console.error('Erro ao carregar config:', err);
             }
             
-            // Gerar ID do dispositivo
-            estado.deviceId = gerarDeviceId();
-            console.log('Device ID:', estado.deviceId);
-            
             estado.configCarregada = true;
-            
             const ultimaLimpeza = await verificarLimpezaAutomatica();
             
             document.getElementById('loadingOverlay').classList.add('hidden');
@@ -841,7 +707,7 @@
             const el = document.getElementById('syncStatus');
             if (online && estado.configCarregada) {
                 el.className = 'sync-status online';
-                el.innerHTML = '<div class="sync-dot"></div><span>Online - Tempo Real</span>';
+                el.innerHTML = '<div class="sync-dot"></div><span>Online</span>';
             } else {
                 el.className = 'sync-status offline';
                 el.innerHTML = '<div class="sync-dot"></div><span>Carregando...</span>';
@@ -857,7 +723,7 @@
 
         window.iniciarAcesso = function() {
             if (!estado.configCarregada) {
-                alert('Carregando configuracoes do galpao... Aguarde alguns segundos e tente novamente.');
+                alert('Carregando... Aguarde.');
                 return;
             }
             
@@ -874,12 +740,12 @@
                         document.getElementById('telaInicial').classList.add('hidden');
                         atualizarStats();
                     } else {
-                        alert('Voce esta a ' + Math.round(dist) + 'm do galpao.\n\nMaximo permitido: ' + CONFIG.raioMaximo + 'm');
+                        alert('Voce esta a ' + Math.round(dist) + 'm do galpao.\nMaximo: ' + CONFIG.raioMaximo + 'm');
                     }
                 },
                 (err) => {
                     document.getElementById('locationAlert').classList.add('hidden');
-                    alert('Nao foi possivel obter localizacao. Verifique o GPS.');
+                    alert('Nao foi possivel obter localizacao.');
                 },
                 { enableHighAccuracy: true, timeout: 15000 }
             );
@@ -909,8 +775,7 @@
             const minutos = String(data.getMinutes()).padStart(2, '0');
             return {
                 data: dia + '/' + mes + '/' + ano,
-                hora: horas + ':' + minutos,
-                completo: dia + '/' + mes + '/' + ano + ' as ' + horas + ':' + minutos
+                hora: horas + ':' + minutos
             };
         }
 
@@ -985,13 +850,13 @@
         function renderizarListaEspera() {
             const container = document.getElementById('listaEsperaContent');
             if (estado.listaEspera.length === 0) {
-                container.innerHTML = '<p style="text-align:center;color:#666;padding:20px">Ninguem na lista de espera.</p>';
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:20px">Ninguem na espera.</p>';
                 return;
             }
             container.innerHTML = estado.listaEspera.map(function(item, idx) {
                 const dataHora = formatarDataHora(item.dataHora);
                 return '<div class="lista-espera"><div class="espera-item">' +
-                    (item.foto ? '<img src="' + item.foto + '" class="espera-foto" alt="Foto">' : '<div style="width:50px;height:50px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:1.5em;flex-shrink:0">👤</div>') +
+                    (item.foto ? '<img src="' + item.foto + '" class="espera-foto">' : '<div style="width:50px;height:50px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:1.5em">👤</div>') +
                     '<div style="display:flex;align-items:center;flex:1">' +
                     '<div class="espera-posicao">' + (item.posicao || idx+1) + '</div>' +
                     '<div class="espera-info">' +
@@ -1007,7 +872,7 @@
             const tel = localStorage.getItem('telefoneUsuario');
             
             if (!tel) { 
-                container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga ocupada no momento.</p>'; 
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga.</p>'; 
                 return; 
             }
             
@@ -1017,35 +882,24 @@
                 const dataHora = formatarDataHora(minha.dataHora);
                 
                 let html = '<div class="minha-vaga-destaque"><div class="vaga-info">' +
-                    (minha.foto ? '<img src="' + minha.foto + '" class="vaga-foto-grande" alt="Foto">' : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em;flex-shrink:0">👤</div>') +
+                    (minha.foto ? '<img src="' + minha.foto + '" class="vaga-foto-grande">' : '<div style="width:80px;height:80px;border-radius:50%;background:var(--light-gray);display:flex;align-items:center;justify-content:center;font-size:2em">👤</div>') +
                     '<div class="vaga-detalhes">' +
                     '<div class="vaga-numero-grande">Vaga ' + minha.numero + '</div>' +
                     '<div class="vaga-nome-grande">' + (minha.nome || 'Nao informado') + '</div>' +
                     '<div class="vaga-placa-grande">' + (minha.placa || '---') + '</div>' +
                     '<div class="vaga-data-hora">' + dataHora.data + ' - ' + dataHora.hora + '</div>' +
                     '</div></div></div>' +
-                    '<div class="slider-label">Deslize para liberar a vaga</div>' +
+                    '<div class="slider-label">Deslize para liberar</div>' +
                     '<div class="slider-container" id="sliderLiberar">' +
                     '<div class="slider-track" id="sliderTrack"></div>' +
-                    '<div class="slider-text">➜ DESLIZE PARA LIBERAR</div>' +
+                    '<div class="slider-text">➜ DESLIZE</div>' +
                     '<div class="slider-handle" id="sliderHandle">🔓</div>' +
-                    '</div>' +
-                    '<div style="margin-top:16px;color:#888;font-size:0.85em;text-align:center">A liberacao e imediata e nao pode ser desfeita</div>';
+                    '</div>';
                 
                 container.innerHTML = html;
-                
                 setTimeout(function() { initSlider(minha.id, minha.numero); }, 200);
             } else {
-                const pos = estado.listaEspera.findIndex(function(i) { return i.telefone === tel; });
-                if (pos >= 0) {
-                    container.innerHTML = '<div style="text-align:center;padding:40px">' +
-                        '<div style="font-size:3em;margin-bottom:10px">⏳</div>' +
-                        '<h3 style="color:var(--warning);margin-bottom:10px">Lista de Espera</h3>' +
-                        '<p>Voce esta na posicao <strong style="color:var(--primary);font-size:1.5em">' + (pos+1) + '</strong></p>' +
-                        '<p style="color:#888;margin-top:10px">Aguarde a liberacao de uma vaga</p></div>';
-                } else {
-                    container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga ou posicao na espera.</p>';
-                }
+                container.innerHTML = '<p style="text-align:center;color:#666;padding:40px">Voce nao possui vaga.</p>';
             }
         }
 
@@ -1068,14 +922,10 @@
             
             const onMove = function(e) {
                 if (!isDragging) return;
-                e.preventDefault();
-                
                 const currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                 let deltaX = currentX - startX;
-                
                 if (deltaX < 0) deltaX = 0;
                 if (deltaX > maxWidth) deltaX = maxWidth;
-                
                 handle.style.transform = 'translateX(' + deltaX + 'px)';
                 track.style.width = (deltaX / maxWidth) * 100 + '%';
             };
@@ -1083,7 +933,6 @@
             const onEnd = function() {
                 if (!isDragging) return;
                 isDragging = false;
-                
                 const currentTransform = handle.style.transform;
                 const match = currentTransform.match(/translateX\((\d+)px\)/);
                 const currentX = match ? parseInt(match[1]) : 0;
@@ -1091,8 +940,7 @@
                 if (currentX >= maxWidth - 20) {
                     handle.classList.add('completed');
                     track.style.background = 'linear-gradient(90deg, var(--success), #00E676)';
-                    document.getElementById('sliderLiberar').querySelector('.slider-text').textContent = 'VAGA LIBERADA!';
-                    
+                    document.getElementById('sliderLiberar').querySelector('.slider-text').textContent = 'LIBERADA!';
                     setTimeout(function() { liberarVaga(vagaId, numero); }, 500);
                 } else {
                     handle.style.transition = 'transform 0.3s';
@@ -1103,35 +951,31 @@
             
             handle.addEventListener('mousedown', onStart);
             handle.addEventListener('touchstart', onStart);
-            
             document.addEventListener('mousemove', onMove);
             document.addEventListener('touchmove', onMove, { passive: false });
-            
             document.addEventListener('mouseup', onEnd);
             document.addEventListener('touchend', onEnd);
         }
 
         window.selecionarVaga = function(num) {
             if (!estado.localizacaoValida) { 
-                alert('Localizacao nao verificada. Reinicie o acesso.'); 
+                alert('Localizacao nao verificada.'); 
                 return; 
             }
             const vaga = estado.vagas.find(function(v) { return v.numero === num; });
-            if (vaga.ocupada) { alert('Vaga ja ocupada!'); return; }
+            if (vaga.ocupada) { alert('Vaga ocupada!'); return; }
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('formCheckin').classList.remove('hidden');
             document.getElementById('vagaSelecionadaNum').textContent = num;
-            
             document.getElementById('alertDistancia').style.display = 'flex';
             document.getElementById('msgDistancia').textContent = 'Voce esta a ' + Math.round(estado.distanciaAtual) + 'm do galpao.';
-            
             iniciarCamera();
         };
 
         function iniciarCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
                 .then(function(stream) { document.getElementById('videoElement').srcObject = stream; window.cameraStream = stream; })
-                .catch(function() { alert('Nao foi possivel acessar a camera.'); });
+                .catch(function() { alert('Nao foi possivel acessar camera.'); });
         }
 
         window.tirarFoto = function() {
@@ -1164,23 +1008,17 @@
             const numVaga = parseInt(document.getElementById('vagaSelecionadaNum').textContent);
             
             if (!nome || !telefone || !placa || !foto) { 
-                alert('Preencha todos os campos e tire a selfie.'); 
+                alert('Preencha tudo e tire selfie.'); 
                 return; 
             }
             
-            // VERIFICAR DISPOSITIVO (Fingerprinting)
-            const verificacao = await verificarDispositivo(estado.deviceId, telefone);
-            if (!verificacao.valido) {
-                alert(verificacao.mensagem);
-                return;
-            }
-            
+            // Verificações básicas (SEM dispositivo)
             if (estado.vagas.some(function(v) { return v.telefone === telefone && v.ocupada; })) { 
-                alert('Telefone ja possui vaga!'); 
+                alert('Este telefone JA possui vaga!'); 
                 return; 
             }
             if (estado.vagas.some(function(v) { return v.placa === placa && v.ocupada; })) { 
-                alert('Placa ja possui vaga!'); 
+                alert('Esta placa JA possui vaga!'); 
                 return; 
             }
             
@@ -1196,9 +1034,6 @@
                     dataHora: dataHora,
                     foto: foto 
                 });
-                
-                // Registrar dispositivo
-                await registrarDispositivo(estado.deviceId, telefone, nome, placa);
                 
                 localStorage.setItem('telefoneUsuario', telefone);
                 if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
@@ -1220,15 +1055,10 @@
         window.liberarVaga = async function(vagaId, numero) {
             try {
                 await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
-                
-                // Liberar dispositivo
-                await liberarDispositivo(estado.deviceId);
-                
                 const tel = localStorage.getItem('telefoneUsuario');
-                const espera = await getDocs(query(collection(db, 'listaEspera')));
-                espera.forEach(function(d) { if (d.data().telefone === tel) updateDoc(d.ref, { ativo: false }); });
-                localStorage.removeItem('telefoneUsuario'); localStorage.removeItem('nomeUsuario');
-                alert('Vaga ' + numero + ' liberada com sucesso!');
+                localStorage.removeItem('telefoneUsuario');
+                localStorage.removeItem('nomeUsuario');
+                alert('Vaga ' + numero + ' liberada!');
                 window.voltarMenu();
             } catch (e) { 
                 console.error(e); 
@@ -1236,126 +1066,68 @@
             }
         };
 
-        // Limpar todas as vagas (Admin)
         window.limparTodasVagas = async function() {
-            if (!confirm('⚠️ ATENCAO! ⚠️\n\nTem certeza que deseja LIBERAR TODAS AS VAGAS?\n\nIsso ira remover todos os motoristas das vagas e da lista de espera.\n\nEsta acao nao pode ser desfeita!')) {
-                return;
-            }
+            if (!confirm('LIBERAR TODAS AS VAGAS?')) return;
             
             try {
                 const batch = writeBatch(db);
-                const vagasRef = collection(db, 'vagas');
-                const snapshot = await getDocs(vagasRef);
-                
+                const snapshot = await getDocs(collection(db, 'vagas'));
                 let count = 0;
                 snapshot.forEach(docRef => {
-                    batch.update(docRef.ref, {
-                        ocupada: false,
-                        nome: '',
-                        telefone: '',
-                        placa: '',
-                        dataHora: '',
-                        foto: ''
-                    });
+                    batch.update(docRef.ref, { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                     count++;
                 });
-                
-                const esperaRef = collection(db, 'listaEspera');
-                const esperaSnapshot = await getDocs(esperaRef);
-                esperaSnapshot.forEach(docRef => {
-                    batch.delete(docRef.ref);
-                });
-                
-                // Limpar dispositivos também
-                const dispositivosRef = collection(db, 'dispositivos');
-                const dispSnapshot = await getDocs(dispositivosRef);
-                dispSnapshot.forEach(docRef => {
-                    batch.update(docRef.ref, {
-                        ocupado: false,
-                        ultimaAcesso: new Date().toISOString()
-                    });
-                });
-                
                 await batch.commit();
                 
                 const hoje = new Date().toISOString().split('T')[0];
-                await setDoc(doc(db, 'config', 'geral'), {
-                    ultimaLimpeza: hoje,
-                    latGalpao: CONFIG.latGalpao,
-                    lonGalpao: CONFIG.lonGalpao,
-                    raioMaximo: CONFIG.raioMaximo,
-                    senhaAdmin: CONFIG.senhaAdmin
-                }, { merge: true });
+                await setDoc(doc(db, 'config', 'geral'), { ultimaLimpeza: hoje }, { merge: true });
                 
-                alert('✅ TODAS AS VAGAS FORAM LIBERADAS!\n\n' + count + ' vagas liberadas.\n\nO sistema esta pronto para um novo turno!');
+                alert('✅ ' + count + ' vagas liberadas!');
                 renderizarAdmin();
-                
             } catch (e) {
-                console.error(e);
-                alert('Erro ao liberar vagas. Tente novamente.');
+                alert('Erro: ' + e.message);
             }
         };
 
-        // Mostrar dispositivos registrados (Admin)
-        window.mostrarDispositivos = async function() {
-            const container = document.getElementById('dispositivosContent');
-            container.innerHTML = '<p style="text-align:center;color:#888">Carregando...</p>';
+        // Resetar dispositivos (Admin)
+        window.resetarDispositivos = async function() {
+            if (!confirm('RESETAR TODOS OS DISPOSITIVOS?\n\nIsso vai limpar todos os registros de dispositivos.\n\nMotoristas poderao fazer check-in normalmente.')) return;
             
             try {
                 const snapshot = await getDocs(collection(db, 'dispositivos'));
-                if (snapshot.empty) {
-                    container.innerHTML = '<p style="text-align:center;color:#666">Nenhum dispositivo registrado.</p>';
-                    return;
-                }
+                const batch = writeBatch(db);
                 
-                let html = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    html += '<div class="admin-item">' +
-                        '<div style="text-align:left">' +
-                        '<small style="color:#888">' + data.deviceId.substring(0, 16) + '...</small><br>' +
-                        '<strong>' + (data.nome || 'Nao informado') + '</strong><br>' +
-                        '<small>' + (data.telefone || '---') + '</small><br>' +
-                        '<small style="color:' + (data.ocupado ? 'var(--danger)' : 'var(--success)') + '">' + 
-                        (data.ocupado ? '🔴 Ocupado' : '🟢 Livre') + '</small>' +
-                        '</div>' +
-                        '</div>';
+                snapshot.forEach(docRef => {
+                    batch.delete(docRef.ref);
                 });
                 
-                container.innerHTML = html;
+                await batch.commit();
+                alert('✅ Dispositivos resetados com sucesso!');
             } catch (e) {
-                console.error(e);
-                container.innerHTML = '<p style="text-align:center;color:var(--danger)">Erro ao carregar dispositivos.</p>';
+                alert('Erro: ' + e.message);
             }
         };
 
         function gerarQRCode() {
             const qrImage = document.getElementById('qrCodeImage');
-            const urlCodificada = encodeURIComponent(SISTEMA_URL);
-            qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + urlCodificada + '&color=000000&bgcolor=ffffff';
+            qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(SISTEMA_URL);
         }
 
         window.compartilharQRCode = async function() {
             if (navigator.share) {
                 try {
-                    await navigator.share({
-                        title: 'RODACOOP - EBA5 | Sistema de Fila',
-                        text: 'Escaneie o QR Code para acessar o sistema de fila!',
-                        url: SISTEMA_URL
-                    });
-                } catch (err) {
-                    console.log('Compartilhamento cancelado');
-                }
+                    await navigator.share({ title: 'RODACOOP EBA5', url: SISTEMA_URL });
+                } catch (err) {}
             } else {
                 await navigator.clipboard.writeText(SISTEMA_URL);
-                alert('Link copiado!\n\n' + SISTEMA_URL + '\n\nCole no WhatsApp ou onde preferir!');
+                alert('Link copiado!');
             }
         };
 
         window.abrirAdmin = async function() {
-            const senha = prompt('Senha de administrador:');
-            if (senha !== CONFIG.senhaAdmin) { if (senha !== null) alert('Senha incorreta!'); return; }
-            localStorage.setItem('isAdmin', 'true');
+            const senha = prompt('Senha:');
+            if (senha !== CONFIG.senhaAdmin) { if (senha) alert('Senha incorreta!'); return; }
+            
             document.getElementById('menuPrincipal').classList.add('hidden');
             document.getElementById('panelAdmin').classList.remove('hidden');
             document.getElementById('configLat').value = CONFIG.latGalpao;
@@ -1363,46 +1135,48 @@
             document.getElementById('configRaio').value = CONFIG.raioMaximo;
             
             const ultimaLimpeza = localStorage.getItem('ultimaLimpeza') || 'Nao registrada';
-            document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza !== 'Nunca' ? ultimaLimpeza : 'Nao registrada';
+            document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza;
             
             gerarQRCode();
             
             try {
-                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }); });
-                document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localizacao atual:</strong><br>Lat: ' + pos.coords.latitude.toFixed(6) + '<br>Lon: ' + pos.coords.longitude.toFixed(6);
-            } catch { document.getElementById('currentLocationDisplay').innerHTML = '<strong>Sua localizacao atual:</strong><br>Nao foi possivel obter (permita GPS)'; }
+                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }); });
+                document.getElementById('currentLocationDisplay').innerHTML = 'Lat: ' + pos.coords.latitude.toFixed(6) + '<br>Lon: ' + pos.coords.longitude.toFixed(6);
+            } catch { 
+                document.getElementById('currentLocationDisplay').innerHTML = 'Nao foi possivel obter'; 
+            }
             renderizarAdmin();
         };
 
         function renderizarAdmin() {
             const container = document.getElementById('adminContent');
             const ocupadas = estado.vagas.filter(function(v) { return v.ocupada; });
-            if (ocupadas.length === 0) { container.innerHTML = '<p style="text-align:center;color:#666">Nenhuma vaga ocupada.</p>'; return; }
+            if (ocupadas.length === 0) { 
+                container.innerHTML = '<p style="text-align:center;color:#666">Nenhuma vaga ocupada.</p>'; 
+                return; 
+            }
             container.innerHTML = ocupadas.map(function(v) {
                 const dataHora = formatarDataHora(v.dataHora);
                 return '<div class="admin-item">' +
-                    '<div style="display:flex;align-items:center;gap:12px">' +
-                    (v.foto ? '<img src="' + v.foto + '" style="width:50px;height:50px;border-radius:50%;border:2px solid var(--primary)">' : '') +
                     '<div style="text-align:left">' +
-                    '<strong style="color:var(--primary)">Vaga ' + v.numero + '</strong><br>' +
-                    '<small>' + (v.nome || 'Nao informado') + '</small><br>' +
-                    '<small style="color:#888">' + (v.placa || '---') + ' | ' + dataHora.data + ' ' + dataHora.hora + '</small>' +
-                    '</div></div>' +
-                    '<button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga(\'' + v.id + '\', ' + v.numero + ')">Remover</button>' +
+                    '<strong style="color:var(--primary)">V' + v.numero + '</strong><br>' +
+                    '<small>' + (v.nome || '---') + '</small><br>' +
+                    '<small style="color:#888">' + (v.placa || '---') + '</small>' +
+                    '</div>' +
+                    '<button class="btn btn-danger" style="width:auto;padding:8px 16px;margin:0" onclick="adminRemoverVaga(\'' + v.id + '\',' + v.numero + ')">X</button>' +
                     '</div>';
             }).join('');
         }
 
         window.adminRemoverVaga = async function(vagaId, numero) {
-            if (!confirm('Remover ocupacao da vaga ' + numero + '?')) return;
+            if (!confirm('Remover vaga ' + numero + '?')) return;
             try {
                 await updateDoc(doc(db, 'vagas', vagaId), { ocupada: false, nome: '', telefone: '', placa: '', dataHora: '', foto: '' });
                 renderizarAdmin();
-            } catch (e) { console.error(e); alert('Erro ao remover.'); }
+            } catch (e) { alert('Erro'); }
         };
 
         window.fecharAdmin = function() { 
-            localStorage.removeItem('isAdmin');
             window.voltarMenu(); 
         };
 
@@ -1410,35 +1184,26 @@
             const lat = parseFloat(document.getElementById('configLat').value);
             const lon = parseFloat(document.getElementById('configLon').value);
             const raio = parseInt(document.getElementById('configRaio').value);
-            if (isNaN(lat) || isNaN(lon) || isNaN(raio)) { alert('Preencha todos os campos corretamente!'); return; }
+            if (isNaN(lat) || isNaN(lon) || isNaN(raio)) { alert('Preencha corretamente!'); return; }
             
             try {
                 await setDoc(doc(db, 'config', 'geral'), {
-                    latGalpao: lat,
-                    lonGalpao: lon,
-                    raioMaximo: raio,
-                    senhaAdmin: CONFIG.senhaAdmin,
-                    atualizadoEm: new Date().toISOString()
-                });
-                
-                CONFIG.latGalpao = lat;
-                CONFIG.lonGalpao = lon;
-                CONFIG.raioMaximo = raio;
-                
-                alert('Configuracoes salvas no Firebase!\n\nGalpao: ' + lat + ', ' + lon + '\nRaio: ' + raio + 'm\n\nTodos os motoristas agora usarao estas coordenadas!');
+                    latGalpao: lat, lonGalpao: lon, raioMaximo: raio, senhaAdmin: CONFIG.senhaAdmin
+                }, { merge: true });
+                CONFIG.latGalpao = lat; CONFIG.lonGalpao = lon; CONFIG.raioMaximo = raio;
+                alert('Configuracoes salvas!');
             } catch (e) {
-                console.error(e);
-                alert('Erro ao salvar configuracoes. Verifique se a colecao "config" existe no Firebase.');
+                alert('Erro: ' + e.message);
             }
         };
 
         window.usarLocalizacaoAtual = async function() {
             try {
-                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }); });
+                const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }); });
                 document.getElementById('configLat').value = pos.coords.latitude.toFixed(6);
                 document.getElementById('configLon').value = pos.coords.longitude.toFixed(6);
-                alert('Localizacao preenchida! Clique em "Salvar no Firebase"');
-            } catch { alert('Nao foi possivel obter localizacao. Verifique o GPS.'); }
+                alert('Localizacao preenchida! Salve.');
+            } catch { alert('Nao foi possivel obter localizacao.'); }
         };
 
         function atualizarStats() {
