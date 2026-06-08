@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#FF6B00">
     <title>RODACOOP - EBA5 | Fila de Carregamento</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -110,7 +111,8 @@
             position: relative; width: 100%; max-width: 400px; margin: 0 auto 16px;
             border-radius: 12px; overflow: hidden; background: var(--dark); border: 2px solid var(--light-gray);
         }
-        #videoElement, #photoElement { width: 100%; display: block; }
+        #videoElement, #photoElement, #qr-reader { width: 100%; display: block; }
+        #qr-reader { min-height: 250px; }
         .camera-controls { display: flex; gap: 10px; margin-top: 12px; }
         .alert { padding: 16px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
         .alert-warning { background: rgba(255, 214, 0, 0.1); border-left: 4px solid var(--warning); color: var(--warning); }
@@ -315,7 +317,7 @@
             border: 2px solid var(--primary);
         }
         .qr-admin-container img {
-            max-width: 200px;
+            max-width: 250px;
             border: 4px solid var(--secondary);
             border-radius: 8px;
             background: white;
@@ -325,6 +327,12 @@
             margin-top: 12px;
             color: #888;
             font-size: 0.85em;
+        }
+        .qr-countdown {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
         }
         .btn-compartilhar {
             background: var(--success);
@@ -348,12 +356,42 @@
             font-size: 0.85em;
         }
         .seguranca-info strong { color: var(--success); }
+        .qr-scan-box {
+            background: var(--dark);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .qr-scan-box h4 {
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        .qr-valido {
+            background: rgba(0, 200, 83, 0.2);
+            border: 2px solid var(--success);
+            color: var(--success);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
+        .qr-invalido {
+            background: rgba(255, 23, 68, 0.2);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
-        <div>Carregando configuracoes do galpao...</div>
+        <div>Carregando sistema...</div>
     </div>
 
     <header class="header">
@@ -398,9 +436,6 @@
                 <button class="btn btn-primary" onclick="iniciarAcesso()">
                     🎯 Acessar Sistema de Fila
                 </button>
-                <p style="margin-top: 16px; font-size: 0.85em; color: #666;">
-                    Ou clique acima se ja estiver no local
-                </p>
             </div>
         </div>
 
@@ -436,14 +471,27 @@
             <div class="card-title">Ocupar Vaga <span id="vagaSelecionadaNum"></span></div>
             
             <div class="seguranca-info">
-                <strong>🔒 Segurança:</strong><br>
-                Selfie obrigatoria para confirmar sua presenca no local.
+                <strong>🔒 Segurança Reforcada:</strong><br>
+                1. Escaneie o QR Code dinamico no galpao<br>
+                2. Tire selfie para confirmar presenca<br>
+                3. GPS valida sua localizacao
+            </div>
+            
+            <!-- QR Code Scanner -->
+            <div class="qr-scan-box">
+                <h4>📷 Passo 1: Escaneie o QR Code</h4>
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
+                    Aponte a camera para o QR Code dinamico no computador do administrador
+                </p>
+                <div id="qr-reader"></div>
+                <div id="qrStatus"></div>
             </div>
             
             <div class="alert alert-success" id="alertDistancia" style="display:none">
                 <span>✅</span>
                 <span id="msgDistancia">Voce esta no galpao!</span>
             </div>
+
             <div class="form-group">
                 <label class="form-label">Nome Completo</label>
                 <input type="text" id="inputNome" class="form-input" placeholder="Digite seu nome">
@@ -463,7 +511,7 @@
                     <canvas id="photoElement" class="hidden"></canvas>
                 </div>
                 <div class="camera-controls">
-                    <button class="btn btn-primary" id="btnTirarFoto" onclick="tirarFoto()">📸 Tirar Foto</button>
+                    <button class="btn btn-primary" id="btnTirarFoto" onclick="tirarFoto()" disabled>📸 Tirar Foto</button>
                     <button class="btn btn-secondary hidden" id="btnNovaFoto" onclick="novaFoto()">🔄 Nova Foto</button>
                 </div>
                 <input type="hidden" id="fotoBase64">
@@ -479,30 +527,27 @@
             
             <div class="limpeza-info">
                 <strong>🕐 Limpeza Automática:</strong><br>
-                O sistema esvazia todas as vagas automaticamente todos os dias às 00:00h.
-                Última limpeza: <span id="ultimaLimpeza">Nao registrada</span>
+                Sistema esvazia vagas automaticamente as 00:00h.
+                Última: <span id="ultimaLimpeza">Nao registrada</span>
+            </div>
+
+            <!-- QR Code Dinâmico para Motoristas -->
+            <div class="config-section">
+                <h4>📱 QR Code Dinâmico (Motoristas)</h4>
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
+                    Mostre este QR Code para os motoristas escanearem. Atualiza a cada 15 segundos.
+                </p>
+                <div class="qr-admin-container">
+                    <img id="qrDinamicoImg" src="" alt="QR Code Dinamico">
+                    <div class="qr-countdown" id="qrCountdown">15</div>
+                    <p>Proximo QR Code em:</p>
+                </div>
+                <button class="btn btn-info" onclick="toggleQRDinamico()">⏸️ Pausar QR Code</button>
             </div>
             
             <div class="config-section">
                 <h4>🗑️ Limpeza Manual</h4>
                 <button class="btn btn-warning" onclick="limparTodasVagas()">⚠️ LIBERAR TODAS AS VAGAS</button>
-            </div>
-
-            <div class="config-section">
-                <h4>🔓 Resetar Dispositivos</h4>
-                <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">
-                    Limpa todos os registros de dispositivos (útil se motoristas estiverem sendo bloqueados indevidamente).
-                </p>
-                <button class="btn btn-info" onclick="resetarDispositivos()">🔄 Resetar Todos Dispositivos</button>
-            </div>
-            
-            <div class="config-section">
-                <h4>📱 QR Code para Motoristas</h4>
-                <div class="qr-admin-container">
-                    <img id="qrCodeImage" src="" alt="QR Code">
-                    <p>Mostre este QR Code para os motoristas</p>
-                    <button class="btn btn-compartilhar" onclick="compartilharQRCode()">📤 Compartilhar</button>
-                </div>
             </div>
             
             <div class="config-section">
@@ -551,7 +596,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, writeBatch, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query, orderBy, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
@@ -581,10 +626,111 @@
             localizacaoValida: false, 
             fotoCapturada: false, 
             configCarregada: false,
-            distanciaAtual: 0
+            distanciaAtual: 0,
+            qrValido: false,
+            qrCodeAtual: ''
         };
 
         const SISTEMA_URL = 'https://britopax.github.io/fila-rodacoop-eba5/';
+        let html5QrcodeScanner = null;
+        let qrDinamicoInterval = null;
+        let qrDinamicoPausado = false;
+
+        // Gerar QR Code dinâmico (muda a cada 15 segundos)
+        function gerarQRCodeDinamico() {
+            const timestamp = Date.now();
+            const codigo = 'RODACOOP_EBA5_' + timestamp;
+            return codigo;
+        }
+
+        // Validar QR Code escaneado
+        function validarQRCode(codigoEscaneado) {
+            const agora = Date.now();
+            const partes = codigoEscaneado.split('_');
+            
+            if (partes[0] !== 'RODACOOP' || partes[1] !== 'EBA5') {
+                return false;
+            }
+            
+            const timestampQR = parseInt(partes[2]);
+            const diferenca = agora - timestampQR;
+            
+            // QR Code válido por 20 segundos (margem de segurança)
+            return diferenca >= 0 && diferenca <= 20000;
+        }
+
+        // Atualizar QR Code dinâmico no Admin
+        function atualizarQRDinamico() {
+            const qrImg = document.getElementById('qrDinamicoImg');
+            const countdown = document.getElementById('qrCountdown');
+            
+            if (!qrImg || qrDinamicoPausado) return;
+            
+            let tempoRestante = 15;
+            
+            const codigo = gerarQRCodeDinamico();
+            estado.qrCodeAtual = codigo;
+            
+            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(codigo);
+            
+            countdown.textContent = tempoRestante;
+            
+            if (qrDinamicoInterval) clearInterval(qrDinamicoInterval);
+            
+            qrDinamicoInterval = setInterval(() => {
+                tempoRestante--;
+                countdown.textContent = tempoRestante;
+                
+                if (tempoRestante <= 0) {
+                    atualizarQRDinamico();
+                }
+            }, 1000);
+        }
+
+        window.toggleQRDinamico = function() {
+            qrDinamicoPausado = !qrDinamicoPausado;
+            const btn = event.target;
+            
+            if (qrDinamicoPausado) {
+                btn.textContent = '▶️ Retomar QR Code';
+                if (qrDinamicoInterval) clearInterval(qrDinamicoInterval);
+            } else {
+                btn.textContent = '⏸️ Pausar QR Code';
+                atualizarQRDinamico();
+            }
+        };
+
+        // Iniciar scanner de QR Code
+        function iniciarScannerQR() {
+            const qrStatus = document.getElementById('qrStatus');
+            
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                (codigoEscaneado) => {
+                    // QR Code escaneado com sucesso
+                    if (validarQRCode(codigoEscaneado)) {
+                        estado.qrValido = true;
+                        qrStatus.innerHTML = '<div class="qr-valido">✅ QR Code válido! Prossiga para o check-in.</div>';
+                        document.getElementById('btnTirarFoto').disabled = false;
+                        html5QrcodeScanner.stop();
+                    } else {
+                        qrStatus.innerHTML = '<div class="qr-invalido">❌ QR Code expirado! Peça um novo ao administrador.</div>';
+                        estado.qrValido = false;
+                    }
+                },
+                (erro) => {
+                    // Erro na leitura (ignorar)
+                }
+            ).catch(err => {
+                qrStatus.innerHTML = '<div class="qr-invalido">❌ Erro ao iniciar camera. Verifique permissoes.</div>';
+                console.error('Erro scanner:', err);
+            });
+        }
 
         // Verificar limpeza automática
         async function verificarLimpezaAutomatica() {
@@ -763,6 +909,11 @@
             ['formCheckin','panelAdmin'].forEach(id => document.getElementById(id).classList.add('hidden'));
             esconderSections();
             document.getElementById('menuPrincipal').classList.remove('hidden');
+            
+            // Parar scanner se estiver ativo
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().catch(() => {});
+            }
         };
 
         function formatarDataHora(dataISO) {
@@ -969,12 +1120,20 @@
             document.getElementById('vagaSelecionadaNum').textContent = num;
             document.getElementById('alertDistancia').style.display = 'flex';
             document.getElementById('msgDistancia').textContent = 'Voce esta a ' + Math.round(estado.distanciaAtual) + 'm do galpao.';
+            
+            // Iniciar scanner QR Code
+            setTimeout(iniciarScannerQR, 500);
+            
+            // Iniciar camera para selfie
             iniciarCamera();
         };
 
         function iniciarCamera() {
             navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-                .then(function(stream) { document.getElementById('videoElement').srcObject = stream; window.cameraStream = stream; })
+                .then(function(stream) { 
+                    document.getElementById('videoElement').srcObject = stream; 
+                    window.cameraStream = stream; 
+                })
                 .catch(function() { alert('Nao foi possivel acessar camera.'); });
         }
 
@@ -1001,6 +1160,12 @@
         };
 
         window.confirmarVaga = async function() {
+            // Validar QR Code primeiro
+            if (!estado.qrValido) {
+                alert('❌ QR Code nao validado! Escaneie o QR Code dinamico no galpao.');
+                return;
+            }
+            
             const nome = document.getElementById('inputNome').value.trim();
             const telefone = document.getElementById('inputTelefone').value.trim();
             const placa = document.getElementById('inputPlaca').value.toUpperCase().trim();
@@ -1012,7 +1177,7 @@
                 return; 
             }
             
-            // Verificações básicas (SEM dispositivo)
+            // Verificacoes basicas
             if (estado.vagas.some(function(v) { return v.telefone === telefone && v.ocupada; })) { 
                 alert('Este telefone JA possui vaga!'); 
                 return; 
@@ -1037,7 +1202,7 @@
                 
                 localStorage.setItem('telefoneUsuario', telefone);
                 if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
-                alert('Vaga ' + numVaga + ' ocupada!\n' + new Date().toLocaleDateString('pt-BR') + ' as ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
+                alert('✅ Vaga ' + numVaga + ' ocupada!\n' + new Date().toLocaleDateString('pt-BR') + ' as ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
                 ['inputNome','inputTelefone','inputPlaca'].forEach(function(id) { document.getElementById(id).value = ''; });
                 window.novaFoto();
                 window.voltarMenu(); window.mostrarVagas();
@@ -1049,6 +1214,9 @@
 
         window.cancelarCheckin = function() {
             if (window.cameraStream) window.cameraStream.getTracks().forEach(function(t) { t.stop(); });
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().catch(() => {});
+            }
             window.voltarMenu();
         };
 
@@ -1089,28 +1257,9 @@
             }
         };
 
-        // Resetar dispositivos (Admin)
-        window.resetarDispositivos = async function() {
-            if (!confirm('RESETAR TODOS OS DISPOSITIVOS?\n\nIsso vai limpar todos os registros de dispositivos.\n\nMotoristas poderao fazer check-in normalmente.')) return;
-            
-            try {
-                const snapshot = await getDocs(collection(db, 'dispositivos'));
-                const batch = writeBatch(db);
-                
-                snapshot.forEach(docRef => {
-                    batch.delete(docRef.ref);
-                });
-                
-                await batch.commit();
-                alert('✅ Dispositivos resetados com sucesso!');
-            } catch (e) {
-                alert('Erro: ' + e.message);
-            }
-        };
-
         function gerarQRCode() {
-            const qrImage = document.getElementById('qrCodeImage');
-            qrImage.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(SISTEMA_URL);
+            const qrImg = document.getElementById('qrCodeImage');
+            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(SISTEMA_URL);
         }
 
         window.compartilharQRCode = async function() {
@@ -1137,7 +1286,8 @@
             const ultimaLimpeza = localStorage.getItem('ultimaLimpeza') || 'Nao registrada';
             document.getElementById('ultimaLimpeza').textContent = ultimaLimpeza;
             
-            gerarQRCode();
+            // Iniciar QR Code dinâmico
+            atualizarQRDinamico();
             
             try {
                 const pos = await new Promise(function(res, rej) { navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }); });
@@ -1177,6 +1327,7 @@
         };
 
         window.fecharAdmin = function() { 
+            if (qrDinamicoInterval) clearInterval(qrDinamicoInterval);
             window.voltarMenu(); 
         };
 
